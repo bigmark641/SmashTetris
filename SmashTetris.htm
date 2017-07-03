@@ -60,6 +60,7 @@
         var STARTING_TETRIS_TICK_DELAY = 2000; //ever 2 seconds
         var STARTING_TETRIS_LEVEL = 0;
         var TETRIS_SPEED_PER_LEVEL = 100;
+        var TETRIS_DROP_SPEED = 10;
         //TODO: End
         
 
@@ -151,12 +152,10 @@
         worldTick();
 
         //Tetris tick
-        var lastTetrisTickTime = new Date().valueOf();
-        function tetrisTick(initiatingTetrisTickTime) {
-            if (initiatingTetrisTickTime === lastTetrisTickTime) {
-                var processTime = new Date().valueOf();
-                lastTetrisTickTime = processTime;            
-                setTimeout(function () { tetrisTick(processTime); }, tetrisTickDelay);
+        var lastTetrisTickIndex = 0;
+        function tetrisTick(initiatingTetrisTickIndex) {
+            if (initiatingTetrisTickIndex === lastTetrisTickIndex) {
+                scheduleTetrisTick(tetrisTickDelay);
 
                 //TODO: Start
                 //  Alan, add your tetris logic here
@@ -171,6 +170,7 @@
                     tetrisClearLines();
                     tetrisUpdateSpeed();
                     tetrisAddBlock();
+                    scheduleTetrisTick(tetrisTickDelay);
                 }
                 else{
                     tetrisMoveDown();
@@ -182,7 +182,7 @@
                     var newBlock = tetrisPieces.sort(()=>Math.random()>0.5)[0]; //shuffle the pieces and grab one
                     var length = newBlock[0].length;
                     var startingCell = (10/2)-Math.floor(length/2);
-                    for(var rowIndex = 0; rowIndex <= newBlock.length; rowIndex++){
+                    for(var rowIndex = 0; rowIndex < newBlock.length; rowIndex++){
                         for(var cellIndex = 0; cellIndex < newBlock[rowIndex].length; cellIndex++){
                             world[world.length-2-rowIndex][startingCell+cellIndex] = newBlock[rowIndex][cellIndex];
                         }                    
@@ -237,7 +237,13 @@
                 //TODO: End
             }
         }
-        tetrisTick(lastTetrisTickTime);
+
+        function scheduleTetrisTick(delay) {            
+            var currentTickIndex = lastTetrisTickIndex + 1;
+            lastTetrisTickIndex = currentTickIndex;            
+            setTimeout(function () { tetrisTick(currentTickIndex); }, delay);
+        }
+        scheduleTetrisTick(0);
 
         //TODO: Start
         //  Alan, add your user actions here
@@ -322,7 +328,7 @@
         function moveRight() {
             console.log("Move Tetris piece right.");
             if(!tetrisCollisionCheckRight()){
-//            if(world.map((a)=>a[10]).indexOf(2) == -1){ //check if we will hit the right side
+                //if(world.map((a)=>a[10]).indexOf(2) == -1){ //check if we will hit the right side
                 for(var rowIndex = 0; rowIndex < world.length; rowIndex++){
                     for(var cellIndex = world[rowIndex].length; cellIndex >= 0; cellIndex--){ //starts from the right side of each array
                         var currentCell = world[rowIndex][cellIndex];
@@ -342,14 +348,13 @@
         }
 
         function drop() {
-            console.log("Drop tetris piece.");
 
-            //Increase speed
-            tetrisTickDelay = 10;
+            //Set speed
+            if (tetrisTickDelay > TETRIS_DROP_SPEED)
+                tetrisTickDelay = TETRIS_DROP_SPEED;
 
-            //Fire off tetris tick
-            lastTetrisTickTime = new Date().valueOf();
-            tetrisTick(lastTetrisTickTime);
+            //Immediately initiate tetris tick
+            scheduleTetrisTick(0);
         }
 
         function tetrisUpdateSpeed() {
