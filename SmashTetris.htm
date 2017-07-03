@@ -1,3 +1,28 @@
+<!--
+
+    Alan,
+
+    What I did already:
+        Use WASD to move and QE to sidestep.
+        Whatever you put in the array "world" will appear.
+        Use the value "2" for any tetris blocks.
+        (I added an S-Piece as an example.)
+
+    What you should do:
+        If you could build a standard Tetris game, that would be great.
+        I added 4 different "TODO" blocks for you to add your code.
+        I think that should be all you need.
+
+    What I will then do:
+        If you can implement the Tetris logic, I will finish up the
+        first person interaction. (shooting pieces to rotate/move them, getting
+        smashed kills you, etc...)
+
+    Love,
+    Mark
+
+-->
+
 <html>
 <head>
 </head>
@@ -29,6 +54,9 @@
         var PLAYER_STARTING_Y = 2;
         var PLAYER_STARTING_ANGLE_DEGREES = 90;
         var STARTING_TETRIS_DELAY = 2000;
+        //TODO: Start
+        //Alan, add any constants here
+        //TODO: End
 
         //Variables
         var world = [
@@ -65,6 +93,9 @@
         var isTurningLeft = false;
         var isTurningRight = false;
         var tetrisTickDelay = STARTING_TETRIS_DELAY;
+        //TODO: Start
+        //Alan, add any global variables here
+        //TODO: End
 
         //Calculated constants
         var WORLD_TICK_DELAY = 1000 / TARGET_FRAMERATE;
@@ -110,9 +141,17 @@
             var elapsedTime = processTime - lastTetrisTickTime;
             lastTetrisTickTime = processTime;
 
+            //TODO: Start
+            //  Alan, add your tetris logic here
+            //  This code will get called every "tetrisTickDelay" milliseconds (initial value is "STARTING_TETRIS_DELAY")
+            //  Each time they progress a level you probably
             console.log("Tetris tick.");
+            //TODO: End
         }
         tetrisTick();
+
+        //TODO: Start
+        //  Alan, add your user actions here
 
         function moveLeft() {
             console.log("Move Tetris piece left.");
@@ -129,6 +168,8 @@
         function drop() {
             console.log("Drop tetris piece.");
         }
+
+        //TODO: End
 
 
         //////////////////////////////
