@@ -1,28 +1,3 @@
-<!--
-
-    Alan,
-
-    What I did already:
-        Use WASD to move and QE to sidestep.
-        Whatever you put in the array "world" will appear.
-        Use the value "2" for any tetris blocks.
-        (I added an S-Piece as an example.)
-
-    What you should do:
-        If you could build a standard Tetris game, that would be great.
-        I added 4 different "TODO" blocks for you to add your code.
-        I think that should be all you need.
-
-    What I will then do:
-        If you can implement the Tetris logic, I will finish up the
-        first person interaction. (shooting pieces to rotate/move them, getting
-        smashed kills you, etc...)
-
-    Love,
-    Mark
-
--->
-
 <html>
 <head>
 </head>
@@ -36,7 +11,7 @@
         // Global variables //
         //////////////////////
 
-        // Config constants
+        // Constants
         var VIEWPORT_ANGLE_DEGREES = 60;
         var CANVAS_WIDTH = 700;
         var CANVAS_HEIGHT = 600;
@@ -45,7 +20,7 @@
         var WALL_HEIGHT = 1;
         var SKY_COLOR = "#0000FF";
         var GROUND_COLOR = "#00FF00";
-        var HORIZONTAL_WALL_COLORS = ["#999999", "#990000", '#009900']; //I added a green color for set blocks
+        var HORIZONTAL_WALL_COLORS = ["#999999", "#990000", '#009900'];
         var WALL_SHADING_PERCENT = -15;
         var DISTANCE_SHADE = -.85
         var TURNING_SPEED = .002;
@@ -53,19 +28,20 @@
         var PLAYER_STARTING_X = 8;
         var PLAYER_STARTING_Y = 2;
         var PLAYER_STARTING_ANGLE_DEGREES = 90;
-        
-       
-        //TODO: Start
-        //Alan, add any constants here
-        var STARTING_TETRIS_TICK_DELAY = 2000; //ever 2 seconds
+        var STARTING_TETRIS_TICK_DELAY = 2000;
         var STARTING_TETRIS_LEVEL = 0;
         var TETRIS_SPEED_PER_LEVEL = 100;
         var TETRIS_DROP_SPEED = 10;
-        //TODO: End
-        
+        var TETRIS_O_PIECE = [[2,2],[2,2]];
+        var TETRIS_I_PIECE = [[2,2,2,2]];
+        var TETRIS_S_PIECE = [[0,2,2],[2,2,0]];
+        var TETRIS_Z_PIECE = [[2,2,0],[0,2,2]];
+        var TETRIS_J_PIECE = [[2,2,2],[2,0,0]];
+        var TETRIS_L_PIECE = [[2,2,2],[0,0,2]];
+        var TETRIS_T_PIECE = [[2,2,2],[0,2,0]];   
+        var TETRIS_PIECES = [TETRIS_O_PIECE, TETRIS_I_PIECE, TETRIS_S_PIECE, TETRIS_Z_PIECE, TETRIS_J_PIECE, TETRIS_L_PIECE, TETRIS_T_PIECE];  
 
         //Variables
-        //world is 22x12 (so playable world is 20x10)
         var world = [
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -100,20 +76,8 @@
         var isTurningLeft = false;
         var isTurningRight = false;
         var tetrisTickDelay = STARTING_TETRIS_TICK_DELAY;
-        //TODO: Start
-        //Alan, add any global variables here
         var tetrisNumberOfLines = 0;
         var tetrisCurrentLevel = STARTING_TETRIS_LEVEL;
-        var tetrisOPiece = [[2,2],
-                            [2,2]];
-        var tetrisIPiece = [[2,2,2,2]];
-        var tetrisSPiece = [[0,2,2],[2,2,0]];
-        var tetrisZPiece = [[2,2,0],[0,2,2]];
-        var tetrisLPiece = [[2,2,2],[2,0,0]];
-        var tetrisJPiece = [[2,2,2],[0,0,2]];
-        var tetrisTPiece = [[2,2,2],[0,2,0]];
-        var tetrisPieces = [tetrisOPiece, tetrisIPiece, tetrisSPiece, tetrisZPiece, tetrisJPiece, tetrisLPiece, tetrisTPiece];
-        //TODO: End
 
         //Calculated constants
         var WORLD_TICK_DELAY = 1000 / TARGET_FRAMERATE;
@@ -121,51 +85,248 @@
         var WORLD_LENGTH_Y = world.length;
         var VIEWPORT_ANGLE_RADIANS = VIEWPORT_ANGLE_DEGREES * 2 * Math.PI / 360;
         var VIEWPORT_DIST = Math.tan(VIEWPORT_ANGLE_RADIANS) * .5;
-        var VERTICAL_WALL_COLORS = HORIZONTAL_WALL_COLORS.map(function (color) { return shadeColor(color, WALL_SHADING_PERCENT); });
 
 
         ////////////////
         // Initialize //
         ////////////////
         attachKeyboardListeners();
-        var canvasContext = getCanvasContext();
+        var worldEngine = new WorldEngine();
 
 
-        ///////////
-        // Ticks //
-        ///////////
+        /////////////////////////////////////
+        // World engine (drawing & moving) //
+        /////////////////////////////////////
 
-        //World tick
-        var lastWorldTickTime = new Date().valueOf();
-        function worldTick() {
-            setTimeout(worldTick, WORLD_TICK_DELAY);
-            var processTime = new Date().valueOf();
-            var elapsedTime = processTime - lastWorldTickTime;
-            lastWorldTickTime = processTime;
+        function WorldEngine() {
+            var self = this;
 
-            //Draw
-            drawScreen();
 
-            //Move
-            movePlayer(elapsedTime);
-        }
-        worldTick();
+            //-- PRIVATE MEMBER VARIABLES --//
 
-        //Tetris tick
+            //Constants
+            var VERTICAL_WALL_COLORS = HORIZONTAL_WALL_COLORS.map(function (color) { return shadeColor(color, WALL_SHADING_PERCENT); });
+            
+            //Variables
+            var lastWorldTickTime = new Date().valueOf();
+
+
+            //-- CONSTRUCTOR --//
+
+            var canvasContext = initializeAndGetCanvasContext();
+            worldTick();
+
+
+            //-- PRIVATE FUNCTIONALITY --//
+            
+            function worldTick() {
+                setTimeout(worldTick, WORLD_TICK_DELAY);
+                var processTime = new Date().valueOf();
+                var elapsedTime = processTime - lastWorldTickTime;
+                lastWorldTickTime = processTime;
+
+                //Draw
+                drawScreen();
+
+                //Move
+                movePlayer(elapsedTime);
+            }
+            
+            function initializeAndGetCanvasContext() {
+                var canvas = document.getElementById("canvas");
+                canvas.setAttribute("width", CANVAS_WIDTH);
+                canvas.setAttribute("height", CANVAS_HEIGHT);
+                var context = canvas.getContext("2d");
+                context.lineWidth = COLUMN_WIDTH;
+                return context;
+            }
+
+            function drawScreen() {
+
+                //For each viewport column
+                for (var col = 0; col < CANVAS_WIDTH; col += COLUMN_WIDTH) {
+
+                    //Get angle
+                    var angleRelativeToPlayer = Math.atan((.5 - col / CANVAS_WIDTH) / VIEWPORT_DIST);
+                    var angleRelativeToWorld = playerA + angleRelativeToPlayer;
+
+                    //Get distance to wall hit
+                    var hitX = getFirstHit(angleRelativeToWorld, false);
+                    var hitY = getFirstHit(angleRelativeToWorld, true);
+                    var isFirstHitHorizontalWall = hitY.distHit < hitX.distHit;
+                    var firstHit = isFirstHitHorizontalWall ? hitY : hitX;
+                    var firstHitDist = firstHit.distHit;
+                    var firstHitWallType = firstHit.wallType;
+
+                    //Correct distortion due to flat viewport
+                    var distFromViewport = firstHitDist * Math.cos(angleRelativeToPlayer);
+
+                    //Get wall height on viewport
+                    var wallHeightOnViewport;
+                    if (distFromViewport != 0)
+                        wallHeightOnViewport = WALL_HEIGHT * CANVAS_HEIGHT / distFromViewport;
+                    else
+                        wallHeightOnViewport = CANVAS_HEIGHT;
+                    if (wallHeightOnViewport > CANVAS_HEIGHT)
+                        wallHeightOnViewport = CANVAS_HEIGHT;
+
+                    //Draw column
+                    drawColumn(col, wallHeightOnViewport, firstHitWallType, isFirstHitHorizontalWall, distFromViewport * DISTANCE_SHADE);
+                }
+
+                //Draw overhead
+                for (var row = 0; row < world.length; row++) {
+                    for (var col = 0; col < world[0].length; col++) {
+                        var color = world[row][col] == 0 ? "#FFFFFF" : HORIZONTAL_WALL_COLORS[world[row][col] - 1];
+                        canvasContext.fillStyle = color;
+                        canvasContext.fillRect(col * 10, CANVAS_HEIGHT - row * 10 - 10, 10, 10);
+                        canvasContext.stroke();
+                    }
+                }
+            }
+
+            function getFirstHit(angle, onHorizontalWalls) {
+
+                //configure direction
+                if (onHorizontalWalls) {
+                    var divisorToGetDist = Math.sin(angle);
+                    var primaryCoordinate = playerY;
+                    var secondaryCoordinate = playerX;
+                    var multiplierToGetSecondary = 1 / Math.tan(angle);
+                    var primaryMaxLength = WORLD_LENGTH_Y;
+                    var secondaryMaxLength = WORLD_LENGTH_X;
+                    var getWallTypeAtIntLocation = function () { return world[primaryInt + primaryWorldOffset][secondaryInt]; };
+                }
+                else {
+                    var divisorToGetDist = Math.cos(angle);
+                    var primaryCoordinate = playerX;
+                    var secondaryCoordinate = playerY;
+                    var multiplierToGetSecondary = Math.tan(angle);
+                    var primaryMaxLength = WORLD_LENGTH_X;
+                    var secondaryMaxLength = WORLD_LENGTH_Y;
+                    var getWallTypeAtIntLocation = function () { return world[secondaryInt][primaryInt + primaryWorldOffset]; };
+                }
+
+                //Look for first hit
+                if (divisorToGetDist != 0) {
+                    var angleIsPositive = divisorToGetDist >= 0;
+                    var firstPrimaryInt = angleIsPositive ? Math.ceil(primaryCoordinate) : Math.floor(primaryCoordinate);
+                    var intStep = angleIsPositive ? 1 : -1;
+                    var primaryWorldOffset = angleIsPositive ? 0 : -1;
+
+                    //Test each grid intercept
+                    for (var primaryInt = firstPrimaryInt ; primaryInt < primaryMaxLength; primaryInt += intStep) {
+                        var primaryDist = primaryInt - primaryCoordinate;
+                        var secondaryInt = Math.floor(secondaryCoordinate + primaryDist * multiplierToGetSecondary);
+
+                        //If a hit
+                        if (secondaryInt <= 0 || secondaryInt >= secondaryMaxLength || primaryInt <= 0 || primaryInt >= primaryMaxLength) {
+                            break;
+                        }
+                        else if (getWallTypeAtIntLocation() !== 0) {
+                            var distHit = primaryDist / divisorToGetDist;
+                            return { distHit: distHit, wallType: getWallTypeAtIntLocation() };
+                        }
+                    }
+                }
+                return { distHit: Infinity, wallType: null };
+            }
+
+            function drawColumn(col, wallHeight, wallType, isHorizontalWall, wallShade) {
+                var wallTop = (CANVAS_HEIGHT - wallHeight) / 2;
+                var wallBottom = CANVAS_HEIGHT - wallTop;
+                drawLine(canvasContext, col, 0, col, wallTop, SKY_COLOR);
+                drawLine(canvasContext, col, wallTop, col, wallBottom, shadeColor(isHorizontalWall ? HORIZONTAL_WALL_COLORS[wallType - 1] : VERTICAL_WALL_COLORS[wallType - 1], wallShade));
+                drawLine(canvasContext, col, wallBottom, col, CANVAS_HEIGHT, GROUND_COLOR);
+            }
+
+            function drawLine(context, x1, y1, x2, y2, color) {
+                context.beginPath();
+                context.strokeStyle = color;
+                context.moveTo(x1, y1);
+                context.lineTo(x2, y2);
+                context.stroke();
+            }
+
+            function movePlayer(elapsedTime) {
+
+                //Turning left
+                if (isTurningLeft)
+                    playerA += TURNING_SPEED * elapsedTime;
+
+                //Turning right
+                if (isTurningRight)
+                    playerA -= TURNING_SPEED * elapsedTime;
+
+                //Forward
+                if (isMovingForward) {
+                    tryMove(playerA, WALKING_SPEED * elapsedTime);
+                }
+
+                //Backward
+                if (isMovingBackward) {
+                    tryMove(playerA + Math.PI, WALKING_SPEED * elapsedTime);
+                }
+
+                //Sidestepping left
+                if (isSidesteppingLeft) {
+                    tryMove(playerA + (Math.PI / 2), WALKING_SPEED * elapsedTime);
+                }
+
+                //Sidestepping Right
+                if (isSidesteppingRight) {
+                    tryMove(playerA - (Math.PI / 2), WALKING_SPEED * elapsedTime);
+                }
+            }
+
+            function tryMove(angle, walkDistance) {
+
+                //Get distances
+                var distX = Math.cos(angle) * walkDistance;
+                var distY = Math.sin(angle) * walkDistance;
+
+                //Get hits
+                var hitX = getFirstHit(angle, false);
+                var hitY = getFirstHit(angle, true);
+
+                //Try move straight
+                if (hitX.distHit >= walkDistance && hitY.distHit >= walkDistance) {
+                    playerX += distX;
+                    playerY += distY;
+                }
+                    //Try move along wall
+                else if (hitX.distHit < hitY.distHit) {
+                    if (distY > 0)
+                        tryMove(Math.PI / 2, distY);
+                    else
+                        tryMove(3 * Math.PI / 2, -distY);
+                }
+                else {
+                    if (distX > 0)
+                        tryMove(0, distX);
+                    else
+                        tryMove(Math.PI, -distX);
+                }
+            }
+            
+            function shadeColor(color, percent) {
+                //From: http://stackoverflow.com/questions/5560248/programmatically-lighten-or-darken-a-hex-color-or-rgb-and-blend-colors
+                var num = parseInt(color.slice(1), 16), amt = Math.round(2.55 * percent), R = (num >> 16) + amt, G = (num >> 8 & 0x00FF) + amt, B = (num & 0x0000FF) + amt;
+                return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+            }
+        };
+
+        
+        /////////////////
+        // Tetris tick //
+        /////////////////
+
         var lastTetrisTickIndex = 0;
         function tetrisTick(initiatingTetrisTickIndex) {
             if (initiatingTetrisTickIndex === lastTetrisTickIndex) {
                 scheduleTetrisTick(tetrisTickDelay);
-
-                //TODO: Start
-                //  Alan, add your tetris logic here
-                //  This code will get called every "tetrisTickDelay" milliseconds (initial value is "STARTING_TETRIS_TICK_DELAY")
                 
-
-                //every tick, move the current piece (2's in the world) down by 1 (if possible);
-                //check if it's gonna collide, if it does, stick it there, and turn it to 3s.
-                
-                if(tetrisCollisionCheckDown()){
+                if(isMovingDownACollision()){
                     tetrisSetPiece();
                     tetrisClearLines();
                     tetrisUpdateSpeed();
@@ -176,10 +337,8 @@
                     tetrisMoveDown();
                 }
 
-                console.log('tetrisTick');
-
                 function tetrisAddBlock(){
-                    var newBlock = tetrisPieces.sort(()=>Math.random()>0.5)[0]; //shuffle the pieces and grab one
+                    var newBlock = TETRIS_PIECES[Math.floor(Math.random()*(TETRIS_PIECES.length))]; //shuffle the pieces and grab one
                     var length = newBlock[0].length;
                     var startingCell = (10/2)-Math.floor(length/2);
                     for(var rowIndex = 0; rowIndex < newBlock.length; rowIndex++){
@@ -248,7 +407,7 @@
         //TODO: Start
         //  Alan, add your user actions here
 
-        function tetrisCollisionCheckDown(){
+        function isMovingDownACollision(){
             //find all the 2's and move them 'plus' one level in the array
             var collision = false;
             for(var rowIndex = world.length-1; rowIndex > 0; rowIndex--){ //start at the last row and work up
@@ -369,173 +528,12 @@
         // Supporting functionality //
         //////////////////////////////
 
-        function drawScreen() {
+        
 
-            //For each viewport column
-            for (var col = 0; col < CANVAS_WIDTH; col += COLUMN_WIDTH) {
 
-                //Get angle
-                var angleRelativeToPlayer = Math.atan((.5 - col / CANVAS_WIDTH) / VIEWPORT_DIST);
-                var angleRelativeToWorld = playerA + angleRelativeToPlayer;
-
-                //Get distance to wall hit
-                var hitX = getFirstHit(angleRelativeToWorld, false);
-                var hitY = getFirstHit(angleRelativeToWorld, true);
-                var isFirstHitHorizontalWall = hitY.distHit < hitX.distHit;
-                var firstHit = isFirstHitHorizontalWall ? hitY : hitX;
-                var firstHitDist = firstHit.distHit;
-                var firstHitWallType = firstHit.wallType;
-
-                //Correct distortion due to flat viewport
-                var distFromViewport = firstHitDist * Math.cos(angleRelativeToPlayer);
-
-                //Get wall height on viewport
-                var wallHeightOnViewport;
-                if (distFromViewport != 0)
-                    wallHeightOnViewport = WALL_HEIGHT * CANVAS_HEIGHT / distFromViewport;
-                else
-                    wallHeightOnViewport = CANVAS_HEIGHT;
-                if (wallHeightOnViewport > CANVAS_HEIGHT)
-                    wallHeightOnViewport = CANVAS_HEIGHT;
-
-                //Draw column
-                drawColumn(col, wallHeightOnViewport, firstHitWallType, isFirstHitHorizontalWall, distFromViewport * DISTANCE_SHADE);
-            }
-
-            //Draw overhead
-            for (var row = 0; row < world.length; row++) {
-                for (var col = 0; col < world[0].length; col++) {
-                    var color = world[row][col] == 0 ? "#FFFFFF" : HORIZONTAL_WALL_COLORS[world[row][col] - 1];
-                    canvasContext.fillStyle = color;
-                    canvasContext.fillRect(col * 10, CANVAS_HEIGHT - row * 10 - 10, 10, 10);
-                    canvasContext.stroke();
-                }
-            }
-        }
-
-        function getFirstHit(angle, onHorizontalWalls) {
-
-            //configure direction
-            if (onHorizontalWalls) {
-                var divisorToGetDist = Math.sin(angle);
-                var primaryCoordinate = playerY;
-                var secondaryCoordinate = playerX;
-                var multiplierToGetSecondary = 1 / Math.tan(angle);
-                var primaryMaxLength = WORLD_LENGTH_Y;
-                var secondaryMaxLength = WORLD_LENGTH_X;
-                var getWallTypeAtIntLocation = function () { return world[primaryInt + primaryWorldOffset][secondaryInt]; };
-            }
-            else {
-                var divisorToGetDist = Math.cos(angle);
-                var primaryCoordinate = playerX;
-                var secondaryCoordinate = playerY;
-                var multiplierToGetSecondary = Math.tan(angle);
-                var primaryMaxLength = WORLD_LENGTH_X;
-                var secondaryMaxLength = WORLD_LENGTH_Y;
-                var getWallTypeAtIntLocation = function () { return world[secondaryInt][primaryInt + primaryWorldOffset]; };
-            }
-
-            //Look for first hit
-            if (divisorToGetDist != 0) {
-                var angleIsPositive = divisorToGetDist >= 0;
-                var firstPrimaryInt = angleIsPositive ? Math.ceil(primaryCoordinate) : Math.floor(primaryCoordinate);
-                var intStep = angleIsPositive ? 1 : -1;
-                var primaryWorldOffset = angleIsPositive ? 0 : -1;
-
-                //Test each grid intercept
-                for (var primaryInt = firstPrimaryInt ; primaryInt < primaryMaxLength; primaryInt += intStep) {
-                    var primaryDist = primaryInt - primaryCoordinate;
-                    var secondaryInt = Math.floor(secondaryCoordinate + primaryDist * multiplierToGetSecondary);
-
-                    //If a hit
-                    if (secondaryInt <= 0 || secondaryInt >= secondaryMaxLength || primaryInt <= 0 || primaryInt >= primaryMaxLength) {
-                        break;
-                    }
-                    else if (getWallTypeAtIntLocation() !== 0) {
-                        var distHit = primaryDist / divisorToGetDist;
-                        return { distHit: distHit, wallType: getWallTypeAtIntLocation() };
-                    }
-                }
-            }
-            return { distHit: Infinity, wallType: null };
-        }
-
-        function drawColumn(col, wallHeight, wallType, isHorizontalWall, wallShade) {
-            var wallTop = (CANVAS_HEIGHT - wallHeight) / 2;
-            var wallBottom = CANVAS_HEIGHT - wallTop;
-            drawLine(canvasContext, col, 0, col, wallTop, SKY_COLOR);
-            drawLine(canvasContext, col, wallTop, col, wallBottom, shadeColor(isHorizontalWall ? HORIZONTAL_WALL_COLORS[wallType - 1] : VERTICAL_WALL_COLORS[wallType - 1], wallShade));
-            drawLine(canvasContext, col, wallBottom, col, CANVAS_HEIGHT, GROUND_COLOR);
-        }
-
-        function drawLine(context, x1, y1, x2, y2, color) {
-            context.beginPath();
-            context.strokeStyle = color;
-            context.moveTo(x1, y1);
-            context.lineTo(x2, y2);
-            context.stroke();
-        }
-
-        function movePlayer(elapsedTime) {
-
-            //Turning left
-            if (isTurningLeft)
-                playerA += TURNING_SPEED * elapsedTime;
-
-            //Turning right
-            if (isTurningRight)
-                playerA -= TURNING_SPEED * elapsedTime;
-
-            //Forward
-            if (isMovingForward) {
-                tryMove(playerA, WALKING_SPEED * elapsedTime);
-            }
-
-            //Backward
-            if (isMovingBackward) {
-                tryMove(playerA + Math.PI, WALKING_SPEED * elapsedTime);
-            }
-
-            //Sidestepping left
-            if (isSidesteppingLeft) {
-                tryMove(playerA + (Math.PI / 2), WALKING_SPEED * elapsedTime);
-            }
-
-            //Sidestepping Right
-            if (isSidesteppingRight) {
-                tryMove(playerA - (Math.PI / 2), WALKING_SPEED * elapsedTime);
-            }
-        }
-
-        function tryMove(angle, walkDistance) {
-
-            //Get distances
-            var distX = Math.cos(angle) * walkDistance;
-            var distY = Math.sin(angle) * walkDistance;
-
-            //Get hits
-            var hitX = getFirstHit(angle, false);
-            var hitY = getFirstHit(angle, true);
-
-            //Try move straight
-            if (hitX.distHit >= walkDistance && hitY.distHit >= walkDistance) {
-                playerX += distX;
-                playerY += distY;
-            }
-                //Try move along wall
-            else if (hitX.distHit < hitY.distHit) {
-                if (distY > 0)
-                    tryMove(Math.PI / 2, distY);
-                else
-                    tryMove(3 * Math.PI / 2, -distY);
-            }
-            else {
-                if (distX > 0)
-                    tryMove(0, distX);
-                else
-                    tryMove(Math.PI, -distX);
-            }
-        }
+        ///////////////////////
+        // Keyboard handling //
+        ///////////////////////
 
         function attachKeyboardListeners() {
 
@@ -598,21 +596,6 @@
                         break;
                 }
             }
-        }
-
-        function getCanvasContext() {
-            var canvas = document.getElementById("canvas");
-            canvas.setAttribute("width", CANVAS_WIDTH);
-            canvas.setAttribute("height", CANVAS_HEIGHT);
-            var context = canvas.getContext("2d");
-            context.lineWidth = COLUMN_WIDTH;
-            return context;
-        }
-
-        //From: http://stackoverflow.com/questions/5560248/programmatically-lighten-or-darken-a-hex-color-or-rgb-and-blend-colors
-        function shadeColor(color, percent) {
-            var num = parseInt(color.slice(1), 16), amt = Math.round(2.55 * percent), R = (num >> 16) + amt, G = (num >> 8 & 0x00FF) + amt, B = (num & 0x0000FF) + amt;
-            return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
         }
     </script>
 </body>
