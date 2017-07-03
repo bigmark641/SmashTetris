@@ -45,7 +45,7 @@
         var WALL_HEIGHT = 1;
         var SKY_COLOR = "#0000FF";
         var GROUND_COLOR = "#00FF00";
-        var HORIZONTAL_WALL_COLORS = ["#999999", "#990000"];
+        var HORIZONTAL_WALL_COLORS = ["#999999", "#990000", '#009900']; //I added a green color for set blocks
         var WALL_SHADING_PERCENT = -15;
         var DISTANCE_SHADE = -.85
         var TURNING_SPEED = .002;
@@ -53,12 +53,18 @@
         var PLAYER_STARTING_X = 8;
         var PLAYER_STARTING_Y = 2;
         var PLAYER_STARTING_ANGLE_DEGREES = 90;
-        var STARTING_TETRIS_DELAY = 2000;
+        
+       
         //TODO: Start
         //Alan, add any constants here
+        var STARTING_TETRIS_TICK_DELAY = 2000; //ever 2 seconds
+        var STARTING_TETRIS_LEVEL = 0;
+        var TETRIS_SPEED_PER_LEVEL = 100;
         //TODO: End
+        
 
         //Variables
+        //world is 22x12 (so playable world is 20x10)
         var world = [
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -92,9 +98,20 @@
         var isSidesteppingRight = false;
         var isTurningLeft = false;
         var isTurningRight = false;
-        var tetrisTickDelay = STARTING_TETRIS_DELAY;
+        var tetrisTickDelay = STARTING_TETRIS_TICK_DELAY;
         //TODO: Start
         //Alan, add any global variables here
+        var tetrisNumberOfLines = 0;
+        var tetrisCurrentLevel = STARTING_TETRIS_LEVEL;
+        var tetrisOPiece = [[2,2],
+                            [2,2]];
+        var tetrisIPiece = [[2,2,2,2]];
+        var tetrisSPiece = [[0,2,2],[2,2,0]];
+        var tetrisZPiece = [[2,2,0],[0,2,2]];
+        var tetrisLPiece = [[2,2,2],[2,0,0]];
+        var tetrisJPiece = [[2,2,2],[0,0,2]];
+        var tetrisTPiece = [[2,2,2],[0,2,0]];
+        var tetrisPieces = [tetrisOPiece, tetrisIPiece, tetrisSPiece, tetrisZPiece, tetrisJPiece, tetrisLPiece, tetrisTPiece];
         //TODO: End
 
         //Calculated constants
@@ -143,9 +160,80 @@
 
             //TODO: Start
             //  Alan, add your tetris logic here
-            //  This code will get called every "tetrisTickDelay" milliseconds (initial value is "STARTING_TETRIS_DELAY")
-            //  Each time they progress a level you probably
-            console.log("Tetris tick.");
+            //  This code will get called every "tetrisTickDelay" milliseconds (initial value is "STARTING_TETRIS_TICK_DELAY")
+            
+
+            //every tick, move the current piece (2's in the world) down by 1 (if possible);
+            //check if it's gonna collide, if it does, stick it there, and turn it to 3s.
+            
+            if(tetrisCollisionCheckDown()){
+                tetrisSetPiece();
+                tetrisClearLines();
+                tetrisUpdateSpeed();
+                tetrisAddBlock();
+            }
+            else{
+                tetrisMoveDown();
+            }
+
+            console.log('tetrisTick');
+
+            function tetrisAddBlock(){
+                var newBlock = tetrisPieces.sort(()=>Math.random()>0.5)[0]; //shuffle the pieces and grab one
+                var length = newBlock[0].length;
+                var startingCell = (10/2)-Math.floor(length/2);
+                for(var rowIndex = 0; rowIndex <= newBlock.length; rowIndex++){
+                    for(var cellIndex = 0; cellIndex < newBlock[rowIndex].length; cellIndex++){
+                        world[world.length-2-rowIndex][startingCell+cellIndex] = newBlock[rowIndex][cellIndex];
+                    }                    
+                }
+            }
+
+            function tetrisMoveDown(){
+                //nothing colides, so we can move it down;
+                for(var rowIndex = 0; rowIndex < world.length; rowIndex++){
+                    for(var cellIndex =0; cellIndex < world[rowIndex].length; cellIndex++){
+                        var currentCell = world[rowIndex][cellIndex];
+                        if(currentCell == 2){
+                            world[rowIndex-1][cellIndex] = 2; //move it 'down'
+                            world[rowIndex][cellIndex] = 0; //displace the old cell
+                        }
+                    }
+                }
+            }
+
+            function tetrisSetPiece(){
+                //turn all 2's into 3's
+                //maybe we can do madness here, and convert the array to string and replace all the 2's with 3's
+                for(var rowIndex = 0; rowIndex < world.length; rowIndex++){
+                    for(var cellIndex = 0; cellIndex < world[rowIndex].length; cellIndex++){
+                        var currentCell = world[rowIndex][cellIndex];
+                        if(currentCell == 2){
+                            world[rowIndex][cellIndex] = 3;
+                        }
+                    }
+                }
+            }
+
+            
+
+            function tetrisClearLines(){
+                //find all the 2's and move them 'plus' one level in the array
+                for(var rowIndex = 0; rowIndex < world.length; rowIndex++){
+                    if(world[rowIndex].reduce((a,b)=>a+b,0)== 32){ //row is [1,3,3,3,3,3,3,3,3,3,3,1], sums to 32
+                        //maybe we can flash the row a special color?
+                        world.splice(rowIndex,1);  //remove that row
+                        world.splice(20,0,[1,0,0,0,0,0,0,0,0,0,0,1]); //push a blank row at top
+                        
+                        //add a line, and maybe speed up
+                        tetrisNumberOfLines++;
+                        if(tetrisNumberOfLines >= ((tetrisCurrentLevel*10)+10)){
+                            tetrisCurrentLevel++;
+                        }
+                    }
+                }   
+            }
+
             //TODO: End
         }
         tetrisTick();
@@ -153,20 +241,113 @@
         //TODO: Start
         //  Alan, add your user actions here
 
+        function tetrisCollisionCheckDown(){
+            //find all the 2's and move them 'plus' one level in the array
+            var collision = false;
+            for(var rowIndex = world.length-1; rowIndex > 0; rowIndex--){ //start at the last row and work up
+                var currentRow = world[rowIndex];
+                for(var cellIndex = 0; cellIndex < currentRow.length; cellIndex++){
+                    //for each cell, see if it's a 2, and if we can move it down.
+                    if(currentRow[cellIndex] == 2){
+                        var cellBelowCurrentCell = world[rowIndex-1][cellIndex];
+                        if(cellBelowCurrentCell == 1 || // 1 is the wall
+                            cellBelowCurrentCell == 3 ){ // 3 is the already set pieces;
+                                collision = true;
+                                return collision;
+                            }
+                    }
+                }
+            }
+            return collision;
+        }
+
+        function tetrisCollisionCheckLeft(){
+            //find all the 2's and move them 'plus' one level in the array
+            var collision = false;
+            for(var rowIndex = world.length-1; rowIndex > 0; rowIndex--){ //start at the last row and work up
+                var currentRow = world[rowIndex];
+                for(var cellIndex = 1; cellIndex < currentRow.length; cellIndex++){
+                    if(currentRow[cellIndex] == 2){
+                        var cellLeftOfCurrentCell = world[rowIndex][cellIndex-1];
+                        if(cellLeftOfCurrentCell == 1 || // 1 is the wall
+                            cellLeftOfCurrentCell == 3 ){ // 3 is the already set pieces;
+                                collision = true;
+                                return collision;
+                            }
+                    }
+                }
+            }
+            return collision;
+        }
+
+        function tetrisCollisionCheckRight(){
+            //find all the 2's and move them 'plus' one level in the array
+            var collision = false;
+            for(var rowIndex = world.length-1; rowIndex > 0; rowIndex--){ //start at the last row and work up
+                var currentRow = world[rowIndex];
+                for(var cellIndex = currentRow.length+1; cellIndex > 0; cellIndex--){
+                    if(currentRow[cellIndex] == 2){
+                        var cellRightOfCurrentCell = world[rowIndex][cellIndex+1];
+                        if(cellRightOfCurrentCell == 1 || // 1 is the wall
+                            cellRightOfCurrentCell == 3 ){ // 3 is the already set pieces;
+                                collision = true;
+                                return collision;
+                            }
+                    }
+                }
+            }
+            return collision;
+        }
+
+
         function moveLeft() {
             console.log("Move Tetris piece left.");
+            if(!tetrisCollisionCheckLeft()){
+            //TODO: we need to make sure it doesn't go through existing blocks too.
+            // check from the left, and see if there are empty spaces to the left.
+                for(var rowIndex = 0; rowIndex < world.length; rowIndex++){
+                    for(var cellIndex =0; cellIndex < world[rowIndex].length; cellIndex++){
+                        var currentCell = world[rowIndex][cellIndex];
+
+                        if(currentCell == 2){
+                            world[rowIndex][cellIndex-1] = 2; //move it 'left'
+                            world[rowIndex][cellIndex] = 0; //displace the old cell
+                        }
+                    }
+                }
+            }
         }
 
         function moveRight() {
             console.log("Move Tetris piece right.");
+            if(!tetrisCollisionCheckRight()){
+//            if(world.map((a)=>a[10]).indexOf(2) == -1){ //check if we will hit the right side
+                for(var rowIndex = 0; rowIndex < world.length; rowIndex++){
+                    for(var cellIndex = world[rowIndex].length; cellIndex >= 0; cellIndex--){ //starts from the right side of each array
+                        var currentCell = world[rowIndex][cellIndex];
+                        if(currentCell == 2){
+                            world[rowIndex][cellIndex+1] = 2; //move it 'right'
+                            world[rowIndex][cellIndex] = 0; //displace the old cell
+                        }
+                    }
+                }
+            }
         }
 
-        function rotate() {
+        function rotate(angle) { //positive is clockwise, negative is anticlockwise
             console.log("Rotate Tetris piece.");
+            
+
         }
 
         function drop() {
             console.log("Drop tetris piece.");
+            tetrisTickDelay = tetrisTickDelay/10;
+        }
+
+        function tetrisUpdateSpeed() {
+            //updates the speed, used when dropping stops, and when the level goes up.
+            tetrisTickDelay = STARTING_TETRIS_TICK_DELAY - (tetrisCurrentLevel * TETRIS_SPEED_PER_LEVEL);
         }
 
         //TODO: End
