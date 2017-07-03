@@ -20,7 +20,7 @@
         var WALL_HEIGHT = 1;
         var SKY_COLOR = "#0000FF";
         var GROUND_COLOR = "#00FF00";
-        var HORIZONTAL_WALL_COLORS = ["#999999", "#990000", '#009900'];
+        var HORIZONTAL_WALL_COLORS = ["#999999", "#990000", '#706030'];
         var WALL_SHADING_PERCENT = -15;
         var DISTANCE_SHADE = -.85
         var TURNING_SPEED = .002;
@@ -90,6 +90,7 @@
 
 
             //-- PRIVATE MEMBER VARIABLES --//
+
             //Constants
             var VERTICAL_WALL_COLORS = HORIZONTAL_WALL_COLORS.map(function (color) { return shadeColor(color, WALL_SHADING_PERCENT); });   
             var WORLD_TICK_DELAY = 1000 / TARGET_FRAMERATE;
@@ -97,6 +98,7 @@
             var WORLD_LENGTH_Y = world.length;
             var VIEWPORT_ANGLE_RADIANS = VIEWPORT_ANGLE_DEGREES * 2 * Math.PI / 360;
             var VIEWPORT_DIST = Math.tan(VIEWPORT_ANGLE_RADIANS) * .5;         
+            
             //Variables
             var lastWorldTickTime = new Date().valueOf();
             var playerX = PLAYER_STARTING_X;
@@ -105,6 +107,7 @@
 
 
             //-- CONSTRUCTOR --//
+
             var canvasContext = initializeAndGetCanvasContext();
             worldTick();
 
@@ -320,8 +323,7 @@
 
 
             //-- PRIVATE MEMBER VARIABLES --//
-            //Constants      
-            //Variables
+
             var lastTetrisTickIndex = 0;
             var tetrisTickDelay = STARTING_TETRIS_TICK_DELAY;
             var tetrisNumberOfLines = 0;
@@ -329,6 +331,7 @@
 
 
             //-- CONSTRUCTOR --//
+
             scheduleTetrisTick(0);
 
 
