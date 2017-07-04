@@ -27,6 +27,8 @@
         var PLAYER_STARTING_X = 8;          //Player's starting X location
         var PLAYER_STARTING_Y = 2;          //Player's starting Y location
         var PLAYER_STARTING_ANGLE_DEGREES = 90;             //Direction player is looking at start
+        var PLAYER_CROSSHAIR_SIZE_PIXELS = 10;              //The height and width of the crosshairs
+        var PLAYER_CROSSHAIR_COLOR = "#000000";             //The color of the crosshairs
         var TETRIS_STARTING_TICK_SPEED_MILLISECONDS = 2000; //The initial speed of the tetris engine
         var TETRIS_STARTING_LEVEL = 0;                      //The initial level of the tetris engine
         var TETRIS_SPEED_PER_LEVEL_MILLISECONDS = 100;      //How much the tetris tick speed decreases each level
@@ -193,6 +195,12 @@
                         canvasContext.stroke();
                     }
                 }
+
+                //Draw crosshairs
+                canvasContext.fillStyle = PLAYER_CROSSHAIR_COLOR;
+                canvasContext.fillRect(VIEWPORT_WIDTH_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2 - PLAYER_CROSSHAIR_SIZE_PIXELS / 2, 1, PLAYER_CROSSHAIR_SIZE_PIXELS);
+                canvasContext.fillRect(VIEWPORT_WIDTH_PIXELS / 2 - PLAYER_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2, PLAYER_CROSSHAIR_SIZE_PIXELS, 1);
+                canvasContext.stroke();
             }
 
             function getFirstHit(angle, onHorizontalWalls) {
