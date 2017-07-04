@@ -600,7 +600,7 @@
         function attachKeyboardListeners(worldEngine, tetrisEngine) {
 
             //Key down
-            document.onkeydown = function (keyboardEvent) { console.log(String.fromCharCode(keyboardEvent.keyCode));
+            document.onkeydown = function (keyboardEvent) {
                 switch (String.fromCharCode(keyboardEvent.keyCode)) {
                     case "W":
                         worldEngine.isMovingForward = true;
@@ -620,7 +620,7 @@
                     case "D":
                         worldEngine.isTurningRight = true;
                         break;
-                    case "%":
+                    case "%": //Right arrow
                         if (worldEngine.isFacingWallType(2)) {
                             if (worldEngine.isFacingUp())
                                 tetrisEngine.moveRight();
@@ -628,7 +628,7 @@
                                 tetrisEngine.moveLeft();
                         }
                         break;
-                    case "&":
+                    case "&": //Up arrow
                         if (worldEngine.isFacingWallType(2)) {
                             if (worldEngine.isFacingRight())
                                 tetrisEngine.moveRight();
@@ -636,7 +636,7 @@
                                 tetrisEngine.moveLeft();
                         }
                         break;
-                    case "'":
+                    case "'": //Left arrow
                         if (worldEngine.isFacingWallType(2)) {
                             if (worldEngine.isFacingUp())
                                 tetrisEngine.moveLeft();
@@ -644,7 +644,7 @@
                                 tetrisEngine.moveRight();
                         }
                         break;
-                    case "(":
+                    case "(": //Down arrow
                         if (worldEngine.isFacingWallType(2)) {
                             if (worldEngine.isFacingRight())
                                 tetrisEngine.moveLeft();
@@ -652,10 +652,10 @@
                                 tetrisEngine.moveRight();
                         }
                         break;
-                    case "¿":
+                    case "¿": //Forward slash
                         tetrisEngine.rotate();
                         break;
-                    case " ":
+                    case " ": //Space
                         if (worldEngine.isFacingWallType(2))
                             tetrisEngine.drop();
                         break;
