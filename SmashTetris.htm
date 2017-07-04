@@ -600,27 +600,27 @@
         function attachKeyboardListeners(worldEngine, tetrisEngine) {
 
             //Key down
-            document.onkeydown = function (keyboardEvent) {
-                switch (String.fromCharCode(keyboardEvent.keyCode)) {
-                    case "W":
+            document.onkeydown = function (keyboardEvent) { console.log(keyboardEvent.keyCode);
+                switch (keyboardEvent.keyCode) {
+                    case 87: //W
                         worldEngine.isMovingForward = true;
                         break;
-                    case "A":
+                    case 65: //A
                         worldEngine.isTurningLeft = true;
                         break;
-                    case "Q":
+                    case 81: //Q
                         worldEngine.isSidesteppingLeft = true;
                         break;
-                    case "E":
+                    case 69: //E
                         worldEngine.isSidesteppingRight = true;
                         break;
-                    case "S":
+                    case 83: //S
                         worldEngine.isMovingBackward = true;
                         break;
-                    case "D":
+                    case 68: //D
                         worldEngine.isTurningRight = true;
                         break;
-                    case "%": //Right arrow
+                    case 37: //Right arrow
                         if (worldEngine.isFacingWallType(2)) {
                             if (worldEngine.isFacingUp())
                                 tetrisEngine.moveRight();
@@ -628,7 +628,7 @@
                                 tetrisEngine.moveLeft();
                         }
                         break;
-                    case "&": //Up arrow
+                    case 38: //Up arrow
                         if (worldEngine.isFacingWallType(2)) {
                             if (worldEngine.isFacingRight())
                                 tetrisEngine.moveRight();
@@ -636,7 +636,7 @@
                                 tetrisEngine.moveLeft();
                         }
                         break;
-                    case "'": //Left arrow
+                    case 39: //Left arrow
                         if (worldEngine.isFacingWallType(2)) {
                             if (worldEngine.isFacingUp())
                                 tetrisEngine.moveLeft();
@@ -644,7 +644,7 @@
                                 tetrisEngine.moveRight();
                         }
                         break;
-                    case "(": //Down arrow
+                    case 40: //Down arrow
                         if (worldEngine.isFacingWallType(2)) {
                             if (worldEngine.isFacingRight())
                                 tetrisEngine.moveLeft();
@@ -652,10 +652,10 @@
                                 tetrisEngine.moveRight();
                         }
                         break;
-                    case "¿": //Forward slash
+                    case 191: //Forward slash
                         tetrisEngine.rotate();
                         break;
-                    case " ": //Space
+                    case 32: //Space
                         if (worldEngine.isFacingWallType(2))
                             tetrisEngine.drop();
                         break;
@@ -664,23 +664,23 @@
 
             //Key up
             document.onkeyup = function (keyboardEvent) {
-                switch (String.fromCharCode(keyboardEvent.keyCode)) {
-                    case "W":
+                switch (keyboardEvent.keyCode) {
+                    case 87: //W
                         worldEngine.isMovingForward = false;
                         break;
-                    case "A":
+                    case 65: //A
                         worldEngine.isTurningLeft = false;
                         break;
-                    case "Q":
+                    case 81: //Q
                         worldEngine.isSidesteppingLeft = false;
                         break;
-                    case "E":
+                    case 69: //E
                         worldEngine.isSidesteppingRight = false;
                         break;
-                    case "S":
+                    case 83: //S
                         worldEngine.isMovingBackward = false;
                         break;
-                    case "D":
+                    case 68: //D
                         worldEngine.isTurningRight = false;
                         break;
                 }
