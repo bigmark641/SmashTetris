@@ -19,7 +19,8 @@
         var WALL_HEIGHT = 1;                //How tall each wall should be (1 is a cube)
         var SKY_COLOR = "#0000FF";          //Hex color of the sky
         var GROUND_COLOR = "#00FF00";       //Hex color of the ground
-        var WALL_COLORS = ["#999999", "#990000", '#706030']; //Hex colors of the different wall types
+        var WALL_COLORS = ["#999999", "#990000", '#706030'];        //Hex colors of the different wall types
+        var WALL_COLORS_FACING = ["#999999", "#DD0000", '#706030']; //Hex colors when the user is pointed at the wall
         var WALL_SHADING_PERCENT = -15;     //Color difference of perpendicular walls
         var WALL_DISTANCE_SHADE = -.85;     //How much darker far away objects should appear
         var PLAYER_TURNING_SPEED = .002;    //How fast the player turns
@@ -94,6 +95,7 @@
             //-- PRIVATE MEMBER CONSTANTS --//
 
             var VERTICAL_WALL_COLORS = WALL_COLORS.map(function (color) { return shadeColor(color, WALL_SHADING_PERCENT); });   
+            var VERTICAL_WALL_COLORS_FACING = WALL_COLORS_FACING.map(function (color) { return shadeColor(color, WALL_SHADING_PERCENT); });   
             var WORLD_TICK_DELAY = 1000 / MAX_FRAMERATE;
             var WORLD_LENGTH_X = world[0].length;
             var WORLD_LENGTH_Y = world.length;
@@ -118,29 +120,29 @@
             self.isTurningRight = false;
 
 
+            //-- PUBLIC METHODS --//
+
+            self.getFacingWallType = function () {
+                var firstHit = getFirstHit(playerA);
+                return firstHit.wallType;
+            };
+
+            self.isFacingRight = function () {
+                return (playerA > (3/2)*Math.PI)
+                    || (playerA < (1/2)*Math.PI);
+            };
+
+            self.isFacingUp = function () {
+                return playerA > Math.PI;
+            };
+
+
             //-- CONSTRUCTOR CODE --//
 
             (function () {
                 var canvasContext = initializeAndGetCanvasContext();
                 executeAndScheduleTick(new Date().valueOf(), canvasContext);
             })();
-
-
-            //-- PUBLIC METHODS --//
-
-            self.isFacingWallType = function (wallType) {
-                var firstHit = getFirstHit(playerA);
-                return firstHit.wallType === wallType;
-            };
-
-            self.isFacingRight = function () {
-                return (playerA > (3/2)*Math.PI)
-                    || (playerA < (1/2)*Math.PI);
-            }
-
-            self.isFacingUp = function () {
-                return playerA > Math.PI;
-            }
 
 
             //-- PRIVATE METHODS --//
@@ -171,6 +173,7 @@
             }
 
             function drawScreen(canvasContext) {
+                var facingWallType = self.getFacingWallType();
 
                 //For each viewport column
                 for (var col = 0; col < VIEWPORT_WIDTH_PIXELS; col += COLUMN_WIDTH_PIXELS) {
@@ -198,13 +201,13 @@
                         wallHeightOnViewport = VIEWPORT_HEIGHT_PIXELS;
 
                     //Draw column
-                    drawColumn(canvasContext, col, wallHeightOnViewport, firstHitWallType, isFirstHitHorizontalWall, distFromViewport * WALL_DISTANCE_SHADE);
+                    drawColumn(canvasContext, col, wallHeightOnViewport, firstHitWallType, isFirstHitHorizontalWall, distFromViewport * WALL_DISTANCE_SHADE, facingWallType);
                 }
 
                 //Draw overhead
                 for (var row = 0; row < world.length; row++) {
                     for (var col = 0; col < world[0].length; col++) {
-                        var color = world[row][col] == 0 ? "#FFFFFF" : WALL_COLORS[world[row][col] - 1];
+                        var color = world[row][col] === 0 ? "#FFFFFF" : WALL_COLORS[world[row][col] - 1];
                         canvasContext.fillStyle = color;
                         canvasContext.fillRect(col * 10, VIEWPORT_HEIGHT_PIXELS - row * 10 - 10, 10, 10);
                         canvasContext.stroke();
@@ -282,11 +285,22 @@
                 };
             }
 
-            function drawColumn(canvasContext, col, wallHeight, wallType, isHorizontalWall, wallShade) {
+            function drawColumn(canvasContext, col, wallHeight, wallType, isHorizontalWall, wallShade, facingWallType) {
+
+                //Get wall position
                 var wallTop = (VIEWPORT_HEIGHT_PIXELS - wallHeight) / 2;
                 var wallBottom = VIEWPORT_HEIGHT_PIXELS - wallTop;
+
+                //Get wall color
+                var wallColor;
+                if (wallType === facingWallType)
+                    wallColor = isHorizontalWall ? WALL_COLORS_FACING[wallType - 1] : VERTICAL_WALL_COLORS_FACING[wallType - 1];
+                else
+                    wallColor = isHorizontalWall ? WALL_COLORS[wallType - 1] : VERTICAL_WALL_COLORS[wallType - 1];
+
+                //Draw column
                 drawLine(canvasContext, col, 0, col, wallTop, SKY_COLOR);
-                drawLine(canvasContext, col, wallTop, col, wallBottom, shadeColor(isHorizontalWall ? WALL_COLORS[wallType - 1] : VERTICAL_WALL_COLORS[wallType - 1], wallShade));
+                drawLine(canvasContext, col, wallTop, col, wallBottom, shadeColor(wallColor, wallShade));
                 drawLine(canvasContext, col, wallBottom, col, VIEWPORT_HEIGHT_PIXELS, GROUND_COLOR);
             }
 
@@ -388,14 +402,6 @@
             var currentLevel = TETRIS_STARTING_LEVEL;
 
 
-            //-- CONSTRUCTOR CODE --//
-
-            (function () {
-                addBlock();
-                scheduleTick(0);
-            })();
-
-
             //-- PUBLIC METHODS --//
 
             self.moveLeft = function () {
@@ -414,7 +420,7 @@
                         }
                     }
                 }
-            }
+            };
 
             self.moveRight = function () {
                 console.log("Move Tetris piece right.");
@@ -430,11 +436,11 @@
                         }
                     }
                 }
-            }
+            };
 
             self.rotate = function (angle) { //positive is clockwise, negative is anticlockwise
                 console.log("Rotate Tetris piece.");          
-            }
+            };
 
             self.drop = function () {
 
@@ -444,7 +450,15 @@
 
                 //Immediately initiate tetris tick
                 scheduleTick(0);
-            }
+            };
+
+
+            //-- CONSTRUCTOR CODE --//
+
+            (function () {
+                addBlock();
+                scheduleTick(0);
+            })();
 
 
             //-- PRIVATE METHODS --//
@@ -619,7 +633,7 @@
                         worldEngine.isTurningRight = true;
                         break;
                     case 37: //Right arrow
-                        if (worldEngine.isFacingWallType(2)) {
+                        if (worldEngine.getFacingWallType() === 2) {
                             if (worldEngine.isFacingUp())
                                 tetrisEngine.moveRight();
                             else
@@ -627,7 +641,7 @@
                         }
                         break;
                     case 38: //Up arrow
-                        if (worldEngine.isFacingWallType(2)) {
+                        if (worldEngine.getFacingWallType() === 2) {
                             if (worldEngine.isFacingRight())
                                 tetrisEngine.moveRight();
                             else
@@ -635,7 +649,7 @@
                         }
                         break;
                     case 39: //Left arrow
-                        if (worldEngine.isFacingWallType(2)) {
+                        if (worldEngine.getFacingWallType() === 2) {
                             if (worldEngine.isFacingUp())
                                 tetrisEngine.moveLeft();
                             else
@@ -643,7 +657,7 @@
                         }
                         break;
                     case 40: //Down arrow
-                        if (worldEngine.isFacingWallType(2)) {
+                        if (worldEngine.getFacingWallType() === 2) {
                             if (worldEngine.isFacingRight())
                                 tetrisEngine.moveLeft();
                             else
@@ -654,7 +668,7 @@
                         tetrisEngine.rotate();
                         break;
                     case 32: //Space
-                        if (worldEngine.isFacingWallType(2))
+                        if (worldEngine.getFacingWallType() === 2)
                             tetrisEngine.drop();
                         break;
                 }
