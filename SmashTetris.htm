@@ -120,18 +120,18 @@
 
             (function () {
                 var canvasContext = initializeAndGetCanvasContext();
-                worldTick(new Date().valueOf(), canvasContext);
+                executeAndScheduleTick(new Date().valueOf(), canvasContext);
             })();
 
 
             //-- PRIVATE METHODS --//
             
-            function worldTick(lastTickTime, canvasContext) {
+            function executeAndScheduleTick(lastTickTime, canvasContext) {
 
-                //Schedule next worldTick
+                //Schedule next tick
                 var currentTickTime = new Date().valueOf();
                 setTimeout(function () {
-                    worldTick(currentTickTime, canvasContext); 
+                    executeAndScheduleTick(currentTickTime, canvasContext); 
                 }, WORLD_TICK_DELAY);
                 var elapsedTime = currentTickTime - lastTickTime;
 
@@ -337,17 +337,17 @@
 
             //-- PRIVATE MEMBER VARIABLES --//
 
-            var lastTetrisTickIndex = 0;
-            var tetrisTickDelay = TETRIS_STARTING_TICK_SPEED_MILLISECONDS;
-            var tetrisNumberOfLines = 0;
-            var tetrisCurrentLevel = TETRIS_STARTING_LEVEL;
+            var lastTickIndex = 0;
+            var tickDelay = TETRIS_STARTING_TICK_SPEED_MILLISECONDS;
+            var numberOfLines = 0;
+            var currentLevel = TETRIS_STARTING_LEVEL;
 
 
             //-- CONSTRUCTOR CODE --//
 
             (function () {
-                tetrisAddBlock();
-                scheduleTetrisTick(0);
+                addBlock();
+                scheduleTick(0);
             })();
 
 
@@ -355,7 +355,7 @@
 
             self.moveLeft = function () {
                 console.log("Move Tetris piece left.");
-                if(!tetrisCollisionCheckLeft()){
+                if(!isLeftACollision()){
                 //TODO: we need to make sure it doesn't go through existing blocks too.
                 // check from the left, and see if there are empty spaces to the left.
                     for(var rowIndex = 0; rowIndex < world.length; rowIndex++){
@@ -373,7 +373,7 @@
 
             self.moveRight = function () {
                 console.log("Move Tetris piece right.");
-                if(!tetrisCollisionCheckRight()){
+                if(!isRightACollision()){
                     //if(world.map((a)=>a[10]).indexOf(2) == -1){ //check if we will hit the right side
                     for(var rowIndex = 0; rowIndex < world.length; rowIndex++){
                         for(var cellIndex = world[rowIndex].length; cellIndex >= 0; cellIndex--){ //starts from the right side of each array
@@ -394,40 +394,40 @@
             self.drop = function () {
 
                 //Set speed
-                if (tetrisTickDelay > TETRIS_DROP_TICK_SPEED_MILLISECONDS)
-                    tetrisTickDelay = TETRIS_DROP_TICK_SPEED_MILLISECONDS;
+                if (tickDelay > TETRIS_DROP_TICK_SPEED_MILLISECONDS)
+                    tickDelay = TETRIS_DROP_TICK_SPEED_MILLISECONDS;
 
                 //Immediately initiate tetris tick
-                scheduleTetrisTick(0);
+                scheduleTick(0);
             }
 
 
             //-- PRIVATE METHODS --//
 
-            function tetrisTick(initiatingTetrisTickIndex) {
-                if (initiatingTetrisTickIndex === lastTetrisTickIndex) {
-                    scheduleTetrisTick(tetrisTickDelay);
+            function executeAndScheduleTick(initiatingTickIndex) {
+                if (initiatingTickIndex === lastTickIndex) {
+                    scheduleTick(tickDelay);
                     
                     if(isMovingDownACollision()){
-                        tetrisSetPiece();
-                        tetrisClearLines();
-                        tetrisUpdateSpeed();
-                        tetrisAddBlock();
-                        scheduleTetrisTick(tetrisTickDelay);
+                        setPiece();
+                        clearLines();
+                        updateSpeedIfNecessary();
+                        addBlock();
+                        scheduleTick(tickDelay);
                     }
                     else{
-                        tetrisMoveDown();
+                        movePieceDown();
                     }
                 }
             }
 
-            function scheduleTetrisTick(delay) {            
-                var currentTickIndex = lastTetrisTickIndex + 1;
-                lastTetrisTickIndex = currentTickIndex;            
-                setTimeout(function () { tetrisTick(currentTickIndex); }, delay);
+            function scheduleTick(delay) {            
+                var currentTickIndex = lastTickIndex + 1;
+                lastTickIndex = currentTickIndex;            
+                setTimeout(function () { executeAndScheduleTick(currentTickIndex); }, delay);
             }
 
-            function tetrisAddBlock(){
+            function addBlock(){
                 var newBlock = TETRIS_PIECES[Math.floor(Math.random()*(TETRIS_PIECES.length))]; //shuffle the pieces and grab one
                 var length = newBlock[0].length;
                 var startingCell = (10/2)-Math.floor(length/2);
@@ -438,7 +438,7 @@
                 }
             }
 
-            function tetrisMoveDown(){
+            function movePieceDown(){
                 //nothing colides, so we can move it down;
                 for(var rowIndex = 0; rowIndex < world.length; rowIndex++){
                     for(var cellIndex =0; cellIndex < world[rowIndex].length; cellIndex++){
@@ -451,7 +451,7 @@
                 }
             }
 
-            function tetrisSetPiece(){
+            function setPiece(){
                 //turn all 2's into 3's
                 //maybe we can do madness here, and convert the array to string and replace all the 2's with 3's
                 for(var rowIndex = 0; rowIndex < world.length; rowIndex++){
@@ -464,7 +464,7 @@
                 }
             }            
 
-            function tetrisClearLines(){
+            function clearLines(){
                 //find all the 2's and move them 'plus' one level in the array
                 for(var rowIndex = 0; rowIndex < world.length; rowIndex++){
                     if(world[rowIndex].reduce((a,b)=>a+b,0)== 32){ //row is [1,3,3,3,3,3,3,3,3,3,3,1], sums to 32
@@ -473,9 +473,9 @@
                         world.splice(20,0,[1,0,0,0,0,0,0,0,0,0,0,1]); //push a blank row at top
                         
                         //add a line, and maybe speed up
-                        tetrisNumberOfLines++;
-                        if(tetrisNumberOfLines >= ((tetrisCurrentLevel*10)+10)){
-                            tetrisCurrentLevel++;
+                        numberOfLines++;
+                        if(numberOfLines >= ((currentLevel*10)+10)){
+                            currentLevel++;
                         }
                     }
                 }
@@ -501,7 +501,7 @@
                 return collision;
             }
 
-            function tetrisCollisionCheckLeft(){
+            function isLeftACollision(){
                 //find all the 2's and move them 'plus' one level in the array
                 var collision = false;
                 for(var rowIndex = world.length-1; rowIndex > 0; rowIndex--){ //start at the last row and work up
@@ -520,7 +520,7 @@
                 return collision;
             }
 
-            function tetrisCollisionCheckRight(){
+            function isRightACollision(){
                 //find all the 2's and move them 'plus' one level in the array
                 var collision = false;
                 for(var rowIndex = world.length-1; rowIndex > 0; rowIndex--){ //start at the last row and work up
@@ -539,9 +539,9 @@
                 return collision;
             }
 
-            function tetrisUpdateSpeed() {
+            function updateSpeedIfNecessary() {
                 //updates the speed, used when dropping stops, and when the level goes up.
-                tetrisTickDelay = TETRIS_STARTING_TICK_SPEED_MILLISECONDS - (tetrisCurrentLevel * TETRIS_SPEED_PER_LEVEL_MILLISECONDS);
+                tickDelay = TETRIS_STARTING_TICK_SPEED_MILLISECONDS - (currentLevel * TETRIS_SPEED_PER_LEVEL_MILLISECONDS);
             }
         }                    
 
