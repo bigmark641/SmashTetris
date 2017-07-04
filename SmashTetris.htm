@@ -134,7 +134,12 @@
             };
 
             self.isFacingRight = function () {
-                return ((playerA % (2*Math.PI)) > (3/2)*Math.PI) || ((playerA % (2*Math.PI)) < (1/2)*Math.PI);
+                return (playerA > (3/2)*Math.PI)
+                    || (playerA < (1/2)*Math.PI);
+            }
+
+            self.isFacingUp = function () {
+                return playerA > Math.PI;
             }
 
 
@@ -595,7 +600,7 @@
         function attachKeyboardListeners(worldEngine, tetrisEngine) {
 
             //Key down
-            document.onkeydown = function (keyboardEvent) {
+            document.onkeydown = function (keyboardEvent) { console.log(String.fromCharCode(keyboardEvent.keyCode));
                 switch (String.fromCharCode(keyboardEvent.keyCode)) {
                     case "W":
                         worldEngine.isMovingForward = true;
@@ -616,7 +621,12 @@
                         worldEngine.isTurningRight = true;
                         break;
                     case "%":
-                        tetrisEngine.rotate();
+                        if (worldEngine.isFacingWallType(2)) {
+                            if (worldEngine.isFacingUp())
+                                tetrisEngine.moveRight();
+                            else
+                                tetrisEngine.moveLeft();
+                        }
                         break;
                     case "&":
                         if (worldEngine.isFacingWallType(2)) {
@@ -627,7 +637,12 @@
                         }
                         break;
                     case "'":
-                        tetrisEngine.rotate();
+                        if (worldEngine.isFacingWallType(2)) {
+                            if (worldEngine.isFacingUp())
+                                tetrisEngine.moveLeft();
+                            else
+                                tetrisEngine.moveRight();
+                        }
                         break;
                     case "(":
                         if (worldEngine.isFacingWallType(2)) {
@@ -638,6 +653,9 @@
                         }
                         break;
                     case "¿":
+                        tetrisEngine.rotate();
+                        break;
+                    case " ":
                         if (worldEngine.isFacingWallType(2))
                             tetrisEngine.drop();
                         break;
