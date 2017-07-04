@@ -8,10 +8,9 @@
 
 
         //////////////////////
-        // Global variables //
+        // Config constants //
         //////////////////////
 
-        // Constants
         var VIEWPORT_ANGLE_DEGREES = 60;
         var CANVAS_WIDTH = 700;
         var CANVAS_HEIGHT = 600;
@@ -40,7 +39,11 @@
                             [[2,2,2],[0,0,2]],
                             [[2,2,2],[0,2,0]]];  
 
-        //Variables
+        
+        //////////////////////
+        // Global variables //
+        //////////////////////
+
         var world = [
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -60,25 +63,22 @@
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         ];
-        var isMovingForward = false;
-        var isMovingBackward = false;
-        var isSidesteppingLeft = false;
-        var isSidesteppingRight = false;
-        var isTurningLeft = false;
-        var isTurningRight = false;
 
 
-        ////////////////
-        // Initialize //
-        ////////////////
-        attachKeyboardListeners();
-        var worldEngine = new WorldEngine();
-        var tetrisEngine = new TetrisEngine();
+        /////////////////////////
+        // Initialization code //
+        /////////////////////////
+        
+        (function () {
+            var worldEngine = new WorldEngine();
+            var tetrisEngine = new TetrisEngine();
+            attachKeyboardListeners(worldEngine, tetrisEngine);
+        })();
 
 
         /////////////////////////////////////
@@ -89,9 +89,8 @@
             var self = this;
 
 
-            //-- PRIVATE MEMBER VARIABLES --//
+            //-- PRIVATE MEMBER CONSTANTS --//
 
-            //Constants
             var VERTICAL_WALL_COLORS = HORIZONTAL_WALL_COLORS.map(function (color) { return shadeColor(color, WALL_SHADING_PERCENT); });   
             var WORLD_TICK_DELAY = 1000 / TARGET_FRAMERATE;
             var WORLD_LENGTH_X = world[0].length;
@@ -99,31 +98,45 @@
             var VIEWPORT_ANGLE_RADIANS = VIEWPORT_ANGLE_DEGREES * 2 * Math.PI / 360;
             var VIEWPORT_DIST = Math.tan(VIEWPORT_ANGLE_RADIANS) * .5;         
             
-            //Variables
-            var lastWorldTickTime = new Date().valueOf();
+
+            //-- PRIVATE MEMBER VARIABLES --//
+
             var playerX = PLAYER_STARTING_X;
             var playerY = PLAYER_STARTING_Y;
             var playerA = PLAYER_STARTING_ANGLE_DEGREES * 2 * Math.PI / 360;
 
 
-            //-- CONSTRUCTOR --//
-
-            var canvasContext = initializeAndGetCanvasContext();
-            worldTick();
-
-
-            //-- PRIVATE FUNCTIONALITY --//
+            //-- PUBLIC MEMBER VARIABLES --//
             
-            function worldTick() {
+            self.isMovingForward = false;
+            self.isMovingBackward = false;
+            self.isSidesteppingLeft = false;
+            self.isSidesteppingRight = false;
+            self.isTurningLeft = false;
+            self.isTurningRight = false;
+
+
+            //-- CONSTRUCTOR CODE --//
+
+            (function () {
+                var canvasContext = initializeAndGetCanvasContext();
+                worldTick(new Date().valueOf(), canvasContext);
+            })();
+
+
+            //-- PRIVATE METHODS --//
+            
+            function worldTick(lastTickTime, canvasContext) {
 
                 //Schedule next worldTick
-                setTimeout(worldTick, WORLD_TICK_DELAY);
-                var processTime = new Date().valueOf();
-                var elapsedTime = processTime - lastWorldTickTime;
-                lastWorldTickTime = processTime;
+                var currentTickTime = new Date().valueOf();
+                setTimeout(function () {
+                    worldTick(currentTickTime, canvasContext); 
+                }, WORLD_TICK_DELAY);
+                var elapsedTime = currentTickTime - lastTickTime;
 
                 //Draw
-                drawScreen();
+                drawScreen(canvasContext);
 
                 //Move
                 movePlayer(elapsedTime);
@@ -138,7 +151,7 @@
                 return context;
             }
 
-            function drawScreen() {
+            function drawScreen(canvasContext) {
 
                 //For each viewport column
                 for (var col = 0; col < CANVAS_WIDTH; col += COLUMN_WIDTH) {
@@ -168,7 +181,7 @@
                         wallHeightOnViewport = CANVAS_HEIGHT;
 
                     //Draw column
-                    drawColumn(col, wallHeightOnViewport, firstHitWallType, isFirstHitHorizontalWall, distFromViewport * DISTANCE_SHADE);
+                    drawColumn(canvasContext, col, wallHeightOnViewport, firstHitWallType, isFirstHitHorizontalWall, distFromViewport * DISTANCE_SHADE);
                 }
 
                 //Draw overhead
@@ -229,7 +242,7 @@
                 return { distHit: Infinity, wallType: null };
             }
 
-            function drawColumn(col, wallHeight, wallType, isHorizontalWall, wallShade) {
+            function drawColumn(canvasContext, col, wallHeight, wallType, isHorizontalWall, wallShade) {
                 var wallTop = (CANVAS_HEIGHT - wallHeight) / 2;
                 var wallBottom = CANVAS_HEIGHT - wallTop;
                 drawLine(canvasContext, col, 0, col, wallTop, SKY_COLOR);
@@ -237,41 +250,41 @@
                 drawLine(canvasContext, col, wallBottom, col, CANVAS_HEIGHT, GROUND_COLOR);
             }
 
-            function drawLine(context, x1, y1, x2, y2, color) {
-                context.beginPath();
-                context.strokeStyle = color;
-                context.moveTo(x1, y1);
-                context.lineTo(x2, y2);
-                context.stroke();
+            function drawLine(canvasContext, x1, y1, x2, y2, color) {
+                canvasContext.beginPath();
+                canvasContext.strokeStyle = color;
+                canvasContext.moveTo(x1, y1);
+                canvasContext.lineTo(x2, y2);
+                canvasContext.stroke();
             }
 
             function movePlayer(elapsedTime) {
 
                 //Turning left
-                if (isTurningLeft)
+                if (self.isTurningLeft)
                     playerA += TURNING_SPEED * elapsedTime;
 
                 //Turning right
-                if (isTurningRight)
+                if (self.isTurningRight)
                     playerA -= TURNING_SPEED * elapsedTime;
 
                 //Forward
-                if (isMovingForward) {
+                if (self.isMovingForward) {
                     tryMove(playerA, WALKING_SPEED * elapsedTime);
                 }
 
                 //Backward
-                if (isMovingBackward) {
+                if (self.isMovingBackward) {
                     tryMove(playerA + Math.PI, WALKING_SPEED * elapsedTime);
                 }
 
                 //Sidestepping left
-                if (isSidesteppingLeft) {
+                if (self.isSidesteppingLeft) {
                     tryMove(playerA + (Math.PI / 2), WALKING_SPEED * elapsedTime);
                 }
 
                 //Sidestepping Right
-                if (isSidesteppingRight) {
+                if (self.isSidesteppingRight) {
                     tryMove(playerA - (Math.PI / 2), WALKING_SPEED * elapsedTime);
                 }
             }
@@ -330,9 +343,12 @@
             var tetrisCurrentLevel = STARTING_TETRIS_LEVEL;
 
 
-            //-- CONSTRUCTOR --//
-
-            scheduleTetrisTick(0);
+            //-- CONSTRUCTOR CODE --//
+            
+            (function () {
+                tetrisAddBlock();
+                scheduleTetrisTick(0);
+            })();
 
 
             //-- PUBLIC METHODS --//
@@ -386,7 +402,7 @@
             }
 
 
-            //-- PRIVATE FUNCTIONALITY --//
+            //-- PRIVATE METHODS --//
 
             function tetrisTick(initiatingTetrisTickIndex) {
                 if (initiatingTetrisTickIndex === lastTetrisTickIndex) {
@@ -462,7 +478,7 @@
                             tetrisCurrentLevel++;
                         }
                     }
-                }   
+                }
             }
 
             function isMovingDownACollision(){
@@ -534,28 +550,28 @@
         // Keyboard handling //
         ///////////////////////
 
-        function attachKeyboardListeners() {
+        function attachKeyboardListeners(worldEngine, tetrisEngine) {
 
             //Key down
             document.onkeydown = function (keyboardEvent) {
                 switch (String.fromCharCode(keyboardEvent.keyCode)) {
                     case "W":
-                        isMovingForward = true;
+                        worldEngine.isMovingForward = true;
                         break;
                     case "A":
-                        isTurningLeft = true;
+                        worldEngine.isTurningLeft = true;
                         break;
                     case "Q":
-                        isSidesteppingLeft = true;
+                        worldEngine.isSidesteppingLeft = true;
                         break;
                     case "E":
-                        isSidesteppingRight = true;
+                        worldEngine.isSidesteppingRight = true;
                         break;
                     case "S":
-                        isMovingBackward = true;
+                        worldEngine.isMovingBackward = true;
                         break;
                     case "D":
-                        isTurningRight = true;
+                        worldEngine.isTurningRight = true;
                         break;
                     case "%":
                         tetrisEngine.moveLeft();
@@ -576,22 +592,22 @@
             document.onkeyup = function (keyboardEvent) {
                 switch (String.fromCharCode(keyboardEvent.keyCode)) {
                     case "W":
-                        isMovingForward = false;
+                        worldEngine.isMovingForward = false;
                         break;
                     case "A":
-                        isTurningLeft = false;
+                        worldEngine.isTurningLeft = false;
                         break;
                     case "Q":
-                        isSidesteppingLeft = false;
+                        worldEngine.isSidesteppingLeft = false;
                         break;
                     case "E":
-                        isSidesteppingRight = false;
+                        worldEngine.isSidesteppingRight = false;
                         break;
                     case "S":
-                        isMovingBackward = false;
+                        worldEngine.isMovingBackward = false;
                         break;
                     case "D":
-                        isTurningRight = false;
+                        worldEngine.isTurningRight = false;
                         break;
                 }
             }
