@@ -126,6 +126,18 @@
             })();
 
 
+            //-- PUBLIC METHODS --//
+
+            self.isFacingWallType = function (wallType) {
+                var firstHit = getFirstHit(playerA);
+                return firstHit.wallType === wallType;
+            };
+
+            self.isFacingRight = function () {
+                return ((playerA % (2*Math.PI)) > (3/2)*Math.PI) || ((playerA % (2*Math.PI)) < (1/2)*Math.PI);
+            }
+
+
             //-- PRIVATE METHODS --//
             
             function executeAndScheduleTick(lastTickTime, canvasContext) {
@@ -162,13 +174,11 @@
                     var angleRelativeToPlayer = Math.atan((.5 - col / VIEWPORT_WIDTH_PIXELS) / VIEWPORT_DIST);
                     var angleRelativeToWorld = playerA + angleRelativeToPlayer;
 
-                    //Get distance to wall hit
-                    var hitX = getFirstHit(angleRelativeToWorld, false);
-                    var hitY = getFirstHit(angleRelativeToWorld, true);
-                    var isFirstHitHorizontalWall = hitY.distHit < hitX.distHit;
-                    var firstHit = isFirstHitHorizontalWall ? hitY : hitX;
-                    var firstHitDist = firstHit.distHit;
+                    //Get wall hit
+                    var firstHit = getFirstHit(angleRelativeToWorld)
+                    var firstHitDist = firstHit.dist;
                     var firstHitWallType = firstHit.wallType;
+                    var isFirstHitHorizontalWall = firstHit.isHorizontalWall;
 
                     //Correct distortion due to flat viewport
                     var distFromViewport = firstHitDist * Math.cos(angleRelativeToPlayer);
@@ -203,7 +213,14 @@
                 canvasContext.stroke();
             }
 
-            function getFirstHit(angle, onHorizontalWalls) {
+            function getFirstHit(angle) {
+                var hitX = getFirstHitForDirection(angle, false);
+                var hitY = getFirstHitForDirection(angle, true);
+                var isFirstHitHorizontalWall = hitY.dist < hitX.dist;
+                return isFirstHitHorizontalWall ? hitY : hitX;
+            }
+
+            function getFirstHitForDirection(angle, onHorizontalWalls) {
 
                 //configure direction
                 if (onHorizontalWalls) {
@@ -243,11 +260,23 @@
                         }
                         else if (getWallTypeAtIntLocation() !== 0) {
                             var distHit = primaryDist / divisorToGetDist;
-                            return { distHit: distHit, wallType: getWallTypeAtIntLocation() };
+
+                            //Return hit object
+                            return { 
+                                dist: distHit, 
+                                wallType: getWallTypeAtIntLocation(), 
+                                isHorizontalWall: onHorizontalWalls
+                            };
                         }
                     }
                 }
-                return { distHit: Infinity, wallType: null };
+
+                //No hit found
+                return { 
+                    dist: Infinity,
+                    wallType: null,
+                    horizontalWall: onHorizontalWalls
+                };
             }
 
             function drawColumn(canvasContext, col, wallHeight, wallType, isHorizontalWall, wallShade) {
@@ -275,6 +304,11 @@
                 //Turning right
                 if (self.isTurningRight)
                     playerA -= PLAYER_TURNING_SPEED * elapsedTime;
+
+                //Normalize angle
+                if (playerA < 0)
+                    playerA += 2 * Math.PI;
+                playerA %= 2 * Math.PI;
 
                 //Forward
                 if (self.isMovingForward) {
@@ -304,16 +338,16 @@
                 var distY = Math.sin(angle) * walkDistance;
 
                 //Get hits
-                var hitX = getFirstHit(angle, false);
-                var hitY = getFirstHit(angle, true);
+                var hitX = getFirstHitForDirection(angle, false);
+                var hitY = getFirstHitForDirection(angle, true);
 
                 //Try move straight
-                if (hitX.distHit >= walkDistance && hitY.distHit >= walkDistance) {
+                if (hitX.dist >= walkDistance && hitY.dist >= walkDistance) {
                     playerX += distX;
                     playerY += distY;
                 }
                     //Try move along wall
-                else if (hitX.distHit < hitY.distHit) {
+                else if (hitX.dist < hitY.dist) {
                     if (distY > 0)
                         tryMove(Math.PI / 2, distY);
                     else
@@ -582,17 +616,31 @@
                         worldEngine.isTurningRight = true;
                         break;
                     case "%":
-                        tetrisEngine.moveLeft();
-                        break;
-                    case "&":
                         tetrisEngine.rotate();
                         break;
+                    case "&":
+                        if (worldEngine.isFacingWallType(2)) {
+                            if (worldEngine.isFacingRight())
+                                tetrisEngine.moveRight();
+                            else
+                                tetrisEngine.moveLeft();
+                        }
+                        break;
                     case "'":
-                        tetrisEngine.moveRight();
+                        tetrisEngine.rotate();
                         break;
                     case "(":
-                        tetrisEngine.drop();
-                        break;                  
+                        if (worldEngine.isFacingWallType(2)) {
+                            if (worldEngine.isFacingRight())
+                                tetrisEngine.moveLeft();
+                            else
+                                tetrisEngine.moveRight();
+                        }
+                        break;
+                    case "¿":
+                        if (worldEngine.isFacingWallType(2))
+                            tetrisEngine.drop();
+                        break;
                 }
             }
 
