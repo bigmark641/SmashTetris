@@ -34,13 +34,14 @@
         var TETRIS_STARTING_LEVEL = 0;                      //The initial level of the tetris engine
         var TETRIS_SPEED_PER_LEVEL_MILLISECONDS = 100;      //How much the tetris tick speed decreases each level
         var TETRIS_DROP_TICK_SPEED_MILLISECONDS = 10;       //The tetris tick speed when pieces are dropping
-        var TETRIS_PIECES = [[[2,2],[2,2]],                 //An array of the possible tetris pieces
-                            [[2,2,2,2]],
-                            [[0,2,2],[2,2,0]],
-                            [[2,2,0],[0,2,2]],
-                            [[2,2,2],[2,0,0]],
-                            [[2,2,2],[0,0,2]],
-                            [[2,2,2],[0,2,0]]];  
+        var TETRIS_PIECES = [                               //An array of the possible tetris pieces
+                            //[[2,2],[2,2]],                  //O
+                            //[[2,2,2,2]],                    //I
+                            [[0,2,2],[2,2,0]],              //S
+                            [[2,2,0],[0,2,2]],              //Z
+                            [[2,2,2],[2,0,0]],              //L
+                            [[2,2,2],[0,0,2]],              //J
+                            [[2,2,2],[0,2,0]]];             //T
 
 
         //////////////////////////
@@ -522,6 +523,7 @@
             var tickDelay = TETRIS_STARTING_TICK_SPEED_MILLISECONDS;
             var numberOfLines = 0;
             var currentLevel = TETRIS_STARTING_LEVEL;
+            var currentRotation = 0; //goes from 0 - 3, which says where the blank line is it rotates around.
 
 
             //-- PUBLIC METHODS --//
@@ -561,7 +563,102 @@
             };
 
             self.rotate = function (angle) { //positive is clockwise, negative is anticlockwise
-                console.log("Rotate Tetris piece.");          
+                console.log("Rotate Tetris piece.");    
+                //every piece can be rotated in a 2x2, 3x3, or 4x4 grid.
+                //most every piece is 3x3 (s and j piece)
+                //and we'll handle special cases for 2x2 (block, easy) and 4x4 (i piece, harder).
+                //http://tetris.wikia.com/wiki/SRS
+
+                //find the current block in the world, and make sure 2 is in the center.
+                var blockLocation = []; //should be 4 locations like [ [1,2], [1,3], [1,4], [2,3] ]
+                var center = []; //the center square which will be rotated around (for 3x3 pieces)
+                for(var rowIndex = 0; rowIndex < world.length; rowIndex++){
+                    for(var cellIndex = 0; cellIndex <= world[rowIndex].length; cellIndex++){
+                        if(world[rowIndex][cellIndex] == 2){
+                            blockLocation.push([rowIndex,cellIndex]);
+                            if((world[rowIndex-1][cellIndex] == 2 && world[rowIndex+1][cellIndex] == 2)
+                            || (world[rowIndex][cellIndex-1] == 2 && world[rowIndex][cellIndex+1] == 2)){
+                                center = [rowIndex, cellIndex];
+                            }
+                        }
+                    }
+                }
+
+                //find out if the block is O or I
+                //a little bit of array madness, basically I reduce the array down to unique x and y coords
+                //because the O and the I will only have 2 unique coords
+                //for now, I'll just not rotate those ones.
+                var shortVersions = blockLocation.reduce((a, b)=>(a.concat(b))).filter((element, index, array) => array.indexOf(element) === index);
+                var xaxis = blockLocation.map((x)=>(x[0])).filter((element, index, array) => array.indexOf(element) === index);
+                var yaxis = blockLocation.map((y)=>(y[1])).filter((element, index, array) => array.indexOf(element) === index);
+                var xMin = xaxis.reduce((i,cur)=>(i<cur?i:cur));
+                var yMin = yaxis.reduce((i,cur)=>(i<cur?i:cur));
+
+                //turn block location into the zero indexed version of itself
+
+                var zeroedLocations = [];
+                for(var i = 0; i < blockLocation.length; i++){
+                    zeroedLocations.push([blockLocation[i][0]-xMin, blockLocation[i][1]-yMin]);
+                }
+                
+                //rotate the block in a dummy matrix, then check if the corresponding spots in the world are filled or not (this allows rotation).
+                
+                //this places the block in a 3x3 matrix
+                if(shortVersions.length > 2){ //if the pices is SZJLT
+                    var rotationMatrix = [[0,0,0],
+                                          [0,0,0],
+                                          [0,0,0]];
+                    var x_offset = 0;
+                    var y_offset = 0;
+
+                    if(currentRotation = 0) //blank line on bottom
+                        y_offset = 1;
+
+                    if(currentRotation = 1) //blank line on left
+                        x_offset = 1;
+                    
+                    for(var i =0; i <zeroedLocations.length; i++){
+                        var block = zeroedLocations[i];
+                        rotationMatrix[block[0]+x_offset]
+                                      [block[1]+y_offset] = 2;
+                    }
+                }
+                
+                //first attempt, let's just rotate it, pieces in the way be damned.
+                var rotatedMatrix = [];
+                rotatedMatrix.push([rotationMatrix[0][2], rotationMatrix[1][2],rotationMatrix[2][2]]);
+                rotatedMatrix.push([rotationMatrix[0][1], rotationMatrix[1][1],rotationMatrix[2][1]]);
+                rotatedMatrix.push([rotationMatrix[0][0], rotationMatrix[1][0],rotationMatrix[2][0]]);
+
+                console.log('before', rotationMatrix);
+                console.log('after', rotatedMatrix);
+
+                //now, put the rotated matrix in
+                //whenever there's a 2, find how to put it in the original blocklocation index values for the midpoint.
+
+                //clear the old world.
+                for(var r = 0; r<world.length; r++){
+                    for(var c=0; c<world[r].length; c++){
+                        if(world[r][c]==2){
+                            world[r][c] = 0;
+                        }
+                    }
+                }
+
+                //put in the new piece.
+                for(var rowIndex = 0; rowIndex < rotatedMatrix.length; rowIndex++){
+                    for(var cellIndex = 0; cellIndex < rotatedMatrix[rowIndex].length; cellIndex++){
+                        if(rotatedMatrix[rowIndex][cellIndex] == 2){
+                            var x_coord = center[0] + rowIndex - 1;  //-1 is to ofset our 3x3 matrix so [1,1] is the center.
+                            var y_coord = center[1] + cellIndex - 1; 
+                            world[x_coord][y_coord] = 2;
+                        }
+                    }
+                }
+
+
+
+                      
             };
 
             self.drop = function () {
