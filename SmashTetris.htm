@@ -1,4 +1,4 @@
-<html>
+s<html>
 <head>
 </head>
 <body>
@@ -24,7 +24,8 @@
         var WALL_SHADING_PERCENT = -15;     //Color difference of perpendicular walls
         var WALL_DISTANCE_SHADE = -.85;     //How much darker far away objects should appear
         var PLAYER_TURNING_SPEED = .002;    //How fast the player turns
-        var PLAYER_WALKING_SPEED = .01;     //How fast the player walks       
+        var PLAYER_WALKING_SPEED = .01;     //How fast the player walks
+        var PLAYER_ACCELERATION = .0015;    //How fast the player accelerates
         var PLAYER_STARTING_X = 8;          //Player's starting X location
         var PLAYER_STARTING_Y = 2;          //Player's starting Y location
         var PLAYER_STARTING_ANGLE_DEGREES = 90;             //Direction player is looking at start
@@ -110,6 +111,8 @@
             var isSidesteppingRight = false;
             var isTurningLeft = false;
             var isTurningRight = false;
+            var velocityX = 0;
+            var velocityY = 0;
             
 
             //-- CONSTRUCTOR CODE --//
@@ -137,11 +140,9 @@
 
             function movePlayer(elapsedTime) {
 
-                //Turning left
+                //Turning
                 if (isTurningLeft)
                     playerA += PLAYER_TURNING_SPEED * elapsedTime;
-
-                //Turning right
                 if (isTurningRight)
                     playerA -= PLAYER_TURNING_SPEED * elapsedTime;
 
@@ -150,25 +151,56 @@
                     playerA += 2 * Math.PI;
                 playerA %= 2 * Math.PI;
 
-                //Forward
+                //Decelerate
+                var ratioToDecelerate = 1 - PLAYER_ACCELERATION / Math.sqrt(velocityX * velocityX + velocityY * velocityY);
+                if (ratioToDecelerate > 0) {
+                    velocityX *= ratioToDecelerate;
+                    velocityY *= ratioToDecelerate;
+                }
+                else {
+                    velocityX = 0;
+                    velocityY = 0;
+                }
+
+                //Accelerating
                 if (isMovingForward) {
-                    tryMove(playerA, PLAYER_WALKING_SPEED * elapsedTime);
+                    velocityY += 2 * PLAYER_ACCELERATION * Math.sin(playerA);
+                    velocityX += 2 * PLAYER_ACCELERATION * Math.cos(playerA);
                 }
-
-                //Backward
                 if (isMovingBackward) {
-                    tryMove(playerA + Math.PI, PLAYER_WALKING_SPEED * elapsedTime);
+                    velocityY -= 2 * PLAYER_ACCELERATION * Math.sin(playerA);
+                    velocityX -= 2 * PLAYER_ACCELERATION * Math.cos(playerA);
                 }
-
-                //Sidestepping left
                 if (isSidesteppingLeft) {
-                    tryMove(playerA + (Math.PI / 2), PLAYER_WALKING_SPEED * elapsedTime);
+                    velocityY += 2 * PLAYER_ACCELERATION * Math.sin(playerA + Math.PI / 2);
+                    velocityX += 2 * PLAYER_ACCELERATION * Math.cos(playerA + Math.PI / 2);
+                }
+                if (isSidesteppingRight) {
+                    velocityY -= 2 * PLAYER_ACCELERATION * Math.sin(playerA + Math.PI / 2);
+                    velocityX -= 2 * PLAYER_ACCELERATION * Math.cos(playerA + Math.PI / 2);
+                }
+                
+                //Calculate speed (with capping)
+                var movementV = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
+                if (movementV > PLAYER_WALKING_SPEED) {
+                    var ratioToCapSpeed = PLAYER_WALKING_SPEED / movementV;
+                    velocityX *= ratioToCapSpeed;
+                    velocityY *= ratioToCapSpeed;
+                    movementV = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
                 }
 
-                //Sidestepping Right
-                if (isSidesteppingRight) {
-                    tryMove(playerA - (Math.PI / 2), PLAYER_WALKING_SPEED * elapsedTime);
-                }
+                //Calculate angle
+                if (velocityX === 0 && velocityY >= 0)
+                    var movementA = Math.PI / 2;
+                else if (velocityX === 0 && velocityY < 0)
+                    var movementA = 3 * Math.PI / 2;
+                else if (velocityX >= 0)
+                    var movementA = Math.atan(velocityY / velocityX);
+                else
+                    var movementA = Math.atan(velocityY / velocityX) + Math.PI;
+                    
+                //Move
+                tryMove(movementA, movementV * elapsedTime);
             }
 
             function tryMove(angle, walkDistance) {
@@ -186,7 +218,7 @@
                     playerX += distX;
                     playerY += distY;
                 }
-                    //Try move along wall
+                //Try move along wall
                 else if (hitX.dist < hitY.dist) {
                     if (distY > 0)
                         tryMove(Math.PI / 2, distY);
