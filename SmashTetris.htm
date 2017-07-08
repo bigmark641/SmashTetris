@@ -42,6 +42,10 @@ s<html>
                             [[2,2,2],[2,0,0]],
                             [[2,2,2],[0,0,2]],
                             [[2,2,2],[0,2,0]]];  
+        var WALL_TYPE_NONE = 0;
+        var WALL_TYPE_ARENA = 1;
+        var WALL_TYPE_PIECE_ACTIVE = 2;
+        var WALL_TYPE_PIECE_INACTIVE = 3;
 
 
         //////////////////////////
@@ -118,7 +122,8 @@ s<html>
             //-- CONSTRUCTOR CODE --//
             
             (function () {
-                attachKeyboardListeners();
+                tetrisEngine.pieceMovedDownCallback = pushPlayerDownIfNecessary;
+                attachKeyboardListeners();                
                 executeAndScheduleTick(new Date().valueOf());
             })();
 
@@ -214,7 +219,7 @@ s<html>
                 var hitY = raycastingEngine.getFirstHitForDirection(angle, true);
 
                 //Try move straight
-                if (hitX.dist >= walkDistance && hitY.dist >= walkDistance) {
+                if (hitX.dist > walkDistance && hitY.dist > walkDistance) {
                     playerX += distX;
                     playerY += distY;
                 }
@@ -222,14 +227,47 @@ s<html>
                 else if (hitX.dist < hitY.dist) {
                     if (distY > 0)
                         tryMove(Math.PI / 2, distY);
-                    else
+                    else if (distY < 0)
                         tryMove(3 * Math.PI / 2, -distY);
                 }
-                else {
+                else if (hitX.dist > hitY.dist) {
                     if (distX > 0)
                         tryMove(0, distX);
-                    else
+                    else if (distX < 0)
                         tryMove(Math.PI, -distX);
+                }
+            }
+
+            function pushPlayerDownIfNecessary() {                    
+                if(Math.floor(playerX) !== playerX) {
+                    if (world[Math.floor(playerY - .001)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE)
+                        playerY = Math.floor(playerY - .001) - .001;
+                }
+                else if (Math.floor(playerX) === playerX) {
+                    if (world[Math.floor(playerY - .001)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE || world[Math.floor(playerY - .001)][Math.floor(playerX) - 1] === WALL_TYPE_PIECE_ACTIVE)
+                        playerY = Math.floor(playerY - .001) - .001;
+                }
+            }
+
+            function pushPlayerLeftIfNecessary() {                    
+                if(Math.floor(playerY) !== playerY) {
+                    if (world[Math.floor(playerY)][Math.floor(playerX - .001)] === WALL_TYPE_PIECE_ACTIVE)
+                        playerX = Math.floor(playerX - .001) - .001;
+                }
+                else if (Math.floor(playerY) === playerY) {
+                    if (world[Math.floor(playerY)][Math.floor(playerX - .001)] === WALL_TYPE_PIECE_ACTIVE || world[Math.floor(playerY) - 1][Math.floor(playerX - .001)] === WALL_TYPE_PIECE_ACTIVE)
+                        playerX = Math.floor(playerX - .001) - .001;
+                }
+            }
+
+            function pushPlayerRightIfNecessary() {              
+                if(Math.floor(playerY) !== playerY) {
+                    if (world[Math.floor(playerY)][Math.floor(playerX - .001)] === WALL_TYPE_PIECE_ACTIVE)
+                        playerX = Math.ceil(playerX + .001) + .001;
+                }
+                else if (Math.floor(playerY) === playerY) {
+                    if (world[Math.floor(playerY)][Math.floor(playerX - .001)] === WALL_TYPE_PIECE_ACTIVE || world[Math.floor(playerY) - 1][Math.floor(playerX - .001)] === WALL_TYPE_PIECE_ACTIVE)
+                        playerX = Math.ceil(playerX + .001) + .001;
                 }
             }
 
@@ -266,43 +304,59 @@ s<html>
                             isTurningRight = true;
                             break;
                         case 37: //Right arrow
-                            if (raycastingEngine.getWallType(playerA) === 2) {
-                                if (isFacingUp())
+                            if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
+                                if (isFacingUp()) {
                                     tetrisEngine.moveRight();
-                                else
+                                    pushPlayerRightIfNecessary();
+                                }
+                                else {
                                     tetrisEngine.moveLeft();
+                                    pushPlayerLeftIfNecessary();
+                                }
                             }
                             break;
                         case 38: //Up arrow
-                            if (raycastingEngine.getWallType(playerA) === 2) {
-                                if (isFacingRight())
+                            if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
+                                if (isFacingRight()) {
                                     tetrisEngine.moveRight();
-                                else
+                                    pushPlayerRightIfNecessary();
+                                }
+                                else {
                                     tetrisEngine.moveLeft();
+                                    pushPlayerLeftIfNecessary();
+                                }
                             }
                             break;
                         case 39: //Left arrow
-                            if (raycastingEngine.getWallType(playerA) === 2) {
-                                if (isFacingUp())
+                            if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
+                                if (isFacingUp()) {
                                     tetrisEngine.moveLeft();
-                                else
+                                    pushPlayerLeftIfNecessary();
+                                }
+                                else {
                                     tetrisEngine.moveRight();
+                                    pushPlayerRightIfNecessary();
+                                }
                             }
                             break;
                         case 40: //Down arrow
-                            if (raycastingEngine.getWallType(playerA) === 2) {
-                                if (isFacingRight())
+                            if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
+                                if (isFacingRight()) {
                                     tetrisEngine.moveLeft();
-                                else
+                                    pushPlayerLeftIfNecessary();
+                                }
+                                else {
                                     tetrisEngine.moveRight();
+                                    pushPlayerRightIfNecessary();
+                                }
                             }
                             break;
                         case 191: //Forward slash
-                            if (raycastingEngine.getWallType(playerA) === 2)
+                            if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE)
                                 tetrisEngine.rotate();
                             break;
                         case 32: //Space
-                            if (raycastingEngine.getWallType(playerA) === 2)
+                            if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE)
                                 tetrisEngine.drop();
                             break;
                     }
@@ -398,7 +452,7 @@ s<html>
                         if (secondaryInt <= 0 || secondaryInt >= secondaryMaxLength || primaryInt <= 0 || primaryInt >= primaryMaxLength) {
                             break;
                         }
-                        else if (getWallTypeAtIntLocation() !== 0) {
+                        else if (getWallTypeAtIntLocation() !== WALL_TYPE_NONE) {
                             var distHit = primaryDist / divisorToGetDist;
 
                             //Return hit object
@@ -567,9 +621,9 @@ s<html>
                         for(var cellIndex =0; cellIndex < world[rowIndex].length; cellIndex++){
                             var currentCell = world[rowIndex][cellIndex];
 
-                            if(currentCell == 2){
-                                world[rowIndex][cellIndex-1] = 2; //move it 'left'
-                                world[rowIndex][cellIndex] = 0; //displace the old cell
+                            if(currentCell == WALL_TYPE_PIECE_ACTIVE){
+                                world[rowIndex][cellIndex-1] = WALL_TYPE_PIECE_ACTIVE; //move it 'left'
+                                world[rowIndex][cellIndex] = WALL_TYPE_NONE; //displace the old cell
                             }
                         }
                     }
@@ -583,9 +637,9 @@ s<html>
                     for(var rowIndex = 0; rowIndex < world.length; rowIndex++){
                         for(var cellIndex = world[rowIndex].length; cellIndex >= 0; cellIndex--){ //starts from the right side of each array
                             var currentCell = world[rowIndex][cellIndex];
-                            if(currentCell == 2){
-                                world[rowIndex][cellIndex+1] = 2; //move it 'right'
-                                world[rowIndex][cellIndex] = 0; //displace the old cell
+                            if(currentCell == WALL_TYPE_PIECE_ACTIVE){
+                                world[rowIndex][cellIndex+1] = WALL_TYPE_PIECE_ACTIVE; //move it 'right'
+                                world[rowIndex][cellIndex] = WALL_TYPE_NONE; //displace the old cell
                             }
                         }
                     }
@@ -605,6 +659,8 @@ s<html>
                 //Immediately initiate tetris tick
                 scheduleTick(0);
             };
+
+            self.pieceMovedDownCallback = null;
 
 
             //-- CONSTRUCTOR CODE --//
@@ -656,12 +712,15 @@ s<html>
                 for(var rowIndex = 0; rowIndex < world.length; rowIndex++){
                     for(var cellIndex =0; cellIndex < world[rowIndex].length; cellIndex++){
                         var currentCell = world[rowIndex][cellIndex];
-                        if(currentCell == 2){
-                            world[rowIndex-1][cellIndex] = 2; //move it 'down'
-                            world[rowIndex][cellIndex] = 0; //displace the old cell
+                        if(currentCell == WALL_TYPE_PIECE_ACTIVE){
+                            world[rowIndex-1][cellIndex] = WALL_TYPE_PIECE_ACTIVE; //move it 'down'
+                            world[rowIndex][cellIndex] = WALL_TYPE_NONE; //displace the old cell
                         }
                     }
                 }
+                //execute possible callback
+                if (self.pieceMovedDownCallback !== null)
+                    self.pieceMovedDownCallback();
             }
 
             function setPiece(){
@@ -670,8 +729,8 @@ s<html>
                 for(var rowIndex = 0; rowIndex < world.length; rowIndex++){
                     for(var cellIndex = 0; cellIndex < world[rowIndex].length; cellIndex++){
                         var currentCell = world[rowIndex][cellIndex];
-                        if(currentCell == 2){
-                            world[rowIndex][cellIndex] = 3;
+                        if(currentCell == WALL_TYPE_PIECE_ACTIVE){
+                            world[rowIndex][cellIndex] = WALL_TYPE_PIECE_INACTIVE;
                         }
                     }
                 }
@@ -700,11 +759,11 @@ s<html>
                 for(var rowIndex = world.length-1; rowIndex > 0; rowIndex--){ //start at the last row and work up
                     var currentRow = world[rowIndex];
                     for(var cellIndex = 0; cellIndex < currentRow.length; cellIndex++){
-                        //for each cell, see if it's a 2, and if we can move it down.
-                        if(currentRow[cellIndex] == 2){
+                        //for each cell, see if it's an active piece, and if we can move it down.
+                        if(currentRow[cellIndex] == WALL_TYPE_PIECE_ACTIVE){
                             var cellBelowCurrentCell = world[rowIndex-1][cellIndex];
-                            if(cellBelowCurrentCell == 1 || // 1 is the wall
-                                cellBelowCurrentCell == 3 ){ // 3 is the already set pieces;
+                            if(cellBelowCurrentCell == WALL_TYPE_ARENA ||
+                                cellBelowCurrentCell == WALL_TYPE_PIECE_INACTIVE ){
                                     collision = true;
                                     return collision;
                                 }
@@ -715,15 +774,15 @@ s<html>
             }
 
             function isLeftACollision(){
-                //find all the 2's and move them 'plus' one level in the array
+                //find all the active pieces and move them 'plus' one level in the array
                 var collision = false;
                 for(var rowIndex = world.length-1; rowIndex > 0; rowIndex--){ //start at the last row and work up
                     var currentRow = world[rowIndex];
                     for(var cellIndex = 1; cellIndex < currentRow.length; cellIndex++){
-                        if(currentRow[cellIndex] == 2){
+                        if(currentRow[cellIndex] == WALL_TYPE_PIECE_ACTIVE){
                             var cellLeftOfCurrentCell = world[rowIndex][cellIndex-1];
-                            if(cellLeftOfCurrentCell == 1 || // 1 is the wall
-                                cellLeftOfCurrentCell == 3 ){ // 3 is the already set pieces;
+                            if(cellLeftOfCurrentCell == WALL_TYPE_ARENA ||
+                                cellLeftOfCurrentCell == WALL_TYPE_PIECE_INACTIVE ){
                                     collision = true;
                                     return collision;
                                 }
@@ -734,15 +793,15 @@ s<html>
             }
 
             function isRightACollision(){
-                //find all the 2's and move them 'plus' one level in the array
+                //find all the active pieces and move them 'plus' one level in the array
                 var collision = false;
                 for(var rowIndex = world.length-1; rowIndex > 0; rowIndex--){ //start at the last row and work up
                     var currentRow = world[rowIndex];
                     for(var cellIndex = currentRow.length+1; cellIndex > 0; cellIndex--){
-                        if(currentRow[cellIndex] == 2){
+                        if(currentRow[cellIndex] == WALL_TYPE_PIECE_ACTIVE){
                             var cellRightOfCurrentCell = world[rowIndex][cellIndex+1];
-                            if(cellRightOfCurrentCell == 1 || // 1 is the wall
-                                cellRightOfCurrentCell == 3 ){ // 3 is the already set pieces;
+                            if(cellRightOfCurrentCell == WALL_TYPE_ARENA ||
+                                cellRightOfCurrentCell == WALL_TYPE_PIECE_INACTIVE ){
                                     collision = true;
                                     return collision;
                                 }
