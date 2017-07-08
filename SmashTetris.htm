@@ -530,17 +530,15 @@
             //-- PRIVATE METHODS --//
             
             function executeAndScheduleTick(lastTickTime, canvasContext) {
-                if (isGameExecuting) {
+                
+                //Schedule next tick
+                var currentTickTime = new Date().valueOf();
+                setTimeout(function () {
+                    executeAndScheduleTick(currentTickTime, canvasContext); 
+                }, WORLD_TICK_DELAY);
 
-                    //Schedule next tick
-                    var currentTickTime = new Date().valueOf();
-                    setTimeout(function () {
-                        executeAndScheduleTick(currentTickTime, canvasContext); 
-                    }, WORLD_TICK_DELAY);
-
-                    //Draw
-                    drawScreen(canvasContext);
-                }
+                //Draw
+                drawScreen(canvasContext);
             }
             
             function initializeAndGetCanvasContext() {
@@ -645,6 +643,14 @@
             }
             
             function shadeColor(color, percent) {
+				
+				//There is a bug where these are sometimes undefined when the player gets smashed
+				//This is a hacky fix, that will hopefully be temporary
+                if (!color)
+                    color = "#000000";
+                if (!percent)
+                    percent = 1;
+
                 //From: http://stackoverflow.com/questions/5560248/programmatically-lighten-or-darken-a-hex-color-or-rgb-and-blend-colors
                 var num = parseInt(color.slice(1), 16), amt = Math.round(2.55 * percent), R = (num >> 16) + amt, G = (num >> 8 & 0x00FF) + amt, B = (num & 0x0000FF) + amt;
                 return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
