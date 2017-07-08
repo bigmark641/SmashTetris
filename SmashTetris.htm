@@ -85,7 +85,8 @@ s<html>
         ];
         var playerX = PLAYER_STARTING_X;
         var playerY = PLAYER_STARTING_Y;
-        var playerA = PLAYER_STARTING_ANGLE_DEGREES * 2 * Math.PI / 360; 
+        var playerA = PLAYER_STARTING_ANGLE_DEGREES * 2 * Math.PI / 360;
+        var isGameExecuting = true;
 
 
         /////////////////////////
@@ -131,16 +132,18 @@ s<html>
             //-- PRIVATE FUNCTIONALITY --//
             
             function executeAndScheduleTick(lastTickTime) {
+                if (isGameExecuting) {
 
-                //Schedule next tick
-                var currentTickTime = new Date().valueOf();
-                setTimeout(function () {
-                    executeAndScheduleTick(currentTickTime); 
-                }, WORLD_TICK_DELAY);
-                var elapsedTime = currentTickTime - lastTickTime;
+                    //Schedule next tick
+                    var currentTickTime = new Date().valueOf();
+                    setTimeout(function () {
+                        executeAndScheduleTick(currentTickTime); 
+                    }, WORLD_TICK_DELAY);
+                    var elapsedTime = currentTickTime - lastTickTime;
 
-                //Move
-                movePlayer(elapsedTime);
+                    //Move
+                    movePlayer(elapsedTime);
+                }
             }
 
             function movePlayer(elapsedTime) {
@@ -247,6 +250,7 @@ s<html>
                     if (world[Math.floor(playerY - .001)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE || world[Math.floor(playerY - .001)][Math.floor(playerX) - 1] === WALL_TYPE_PIECE_ACTIVE)
                         playerY = Math.floor(playerY - .001) - .001;
                 }
+                handleSmashIfNecessary();
             }
 
             function pushPlayerLeftIfNecessary() {                    
@@ -258,6 +262,7 @@ s<html>
                     if (world[Math.floor(playerY)][Math.floor(playerX - .001)] === WALL_TYPE_PIECE_ACTIVE || world[Math.floor(playerY) - 1][Math.floor(playerX - .001)] === WALL_TYPE_PIECE_ACTIVE)
                         playerX = Math.floor(playerX - .001) - .001;
                 }
+                handleSmashIfNecessary();
             }
 
             function pushPlayerRightIfNecessary() {              
@@ -268,6 +273,42 @@ s<html>
                 else if (Math.floor(playerY) === playerY) {
                     if (world[Math.floor(playerY)][Math.floor(playerX - .001)] === WALL_TYPE_PIECE_ACTIVE || world[Math.floor(playerY) - 1][Math.floor(playerX - .001)] === WALL_TYPE_PIECE_ACTIVE)
                         playerX = Math.ceil(playerX + .001) + .001;
+                }
+                handleSmashIfNecessary();
+            }
+
+            function handleSmashIfNecessary() {
+
+                //Is player smashed?
+                var isSmashed;
+                var playerXFloor = Math.floor(playerX);
+                var playerYFloor = Math.floor(playerY);
+                if (playerXFloor !== playerX) {
+                    if (playerYFloor !== playerY) {
+                        isSmashed = world[playerYFloor][playerXFloor] !== WALL_TYPE_NONE;
+                    }
+                    else if (playerYFloor === playerY) {
+                        isSmashed = world[playerYFloor][playerXFloor] !== WALL_TYPE_NONE
+                            && world[playerYFloor - 1][playerXFloor] !== WALL_TYPE_NONE;
+                    }
+                }
+                else if (playerXFloor === playerX) {
+                    if (playerYFloor !== playerY) {
+                        isSmashed = world[playerYFloor][playerXFloor] !== WALL_TYPE_NONE
+                            && world[playerYFloor][playerXFloor - 1] !== WALL_TYPE_NONE;
+                    }
+                    else if (playerYFloor === playerY) {
+                        isSmashed = world[playerYFloor][playerXFloor] !== WALL_TYPE_NONE
+                            && world[playerYFloor][playerXFloor - 1] !== WALL_TYPE_NONE
+                            && world[playerYFloor - 1][playerXFloor] !== WALL_TYPE_NONE
+                            && world[playerYFloor - 1][playerXFloor - 1] !== WALL_TYPE_NONE;
+                    }
+                }
+
+                //Handle smash
+                if (isSmashed) {
+                    console.log("Player was smashed!");
+                    isGameExecuting = false;
                 }
             }
 
@@ -284,105 +325,109 @@ s<html>
 
                 //Key down
                 document.onkeydown = function (keyboardEvent) {
-                    switch (keyboardEvent.keyCode) {
-                        case 87: //W
-                            isMovingForward = true;
-                            break;
-                        case 65: //A
-                            isTurningLeft = true;
-                            break;
-                        case 81: //Q
-                            isSidesteppingLeft = true;
-                            break;
-                        case 69: //E
-                            isSidesteppingRight = true;
-                            break;
-                        case 83: //S
-                            isMovingBackward = true;
-                            break;
-                        case 68: //D
-                            isTurningRight = true;
-                            break;
-                        case 37: //Right arrow
-                            if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
-                                if (isFacingUp()) {
-                                    tetrisEngine.moveRight();
-                                    pushPlayerRightIfNecessary();
+                    if (isGameExecuting) {
+                        switch (keyboardEvent.keyCode) {
+                            case 87: //W
+                                isMovingForward = true;
+                                break;
+                            case 65: //A
+                                isTurningLeft = true;
+                                break;
+                            case 81: //Q
+                                isSidesteppingLeft = true;
+                                break;
+                            case 69: //E
+                                isSidesteppingRight = true;
+                                break;
+                            case 83: //S
+                                isMovingBackward = true;
+                                break;
+                            case 68: //D
+                                isTurningRight = true;
+                                break;
+                            case 37: //Right arrow
+                                if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
+                                    if (isFacingUp()) {
+                                        tetrisEngine.moveRight();
+                                        pushPlayerRightIfNecessary();
+                                    }
+                                    else {
+                                        tetrisEngine.moveLeft();
+                                        pushPlayerLeftIfNecessary();
+                                    }
                                 }
-                                else {
-                                    tetrisEngine.moveLeft();
-                                    pushPlayerLeftIfNecessary();
+                                break;
+                            case 38: //Up arrow
+                                if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
+                                    if (isFacingRight()) {
+                                        tetrisEngine.moveRight();
+                                        pushPlayerRightIfNecessary();
+                                    }
+                                    else {
+                                        tetrisEngine.moveLeft();
+                                        pushPlayerLeftIfNecessary();
+                                    }
                                 }
-                            }
-                            break;
-                        case 38: //Up arrow
-                            if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
-                                if (isFacingRight()) {
-                                    tetrisEngine.moveRight();
-                                    pushPlayerRightIfNecessary();
+                                break;
+                            case 39: //Left arrow
+                                if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
+                                    if (isFacingUp()) {
+                                        tetrisEngine.moveLeft();
+                                        pushPlayerLeftIfNecessary();
+                                    }
+                                    else {
+                                        tetrisEngine.moveRight();
+                                        pushPlayerRightIfNecessary();
+                                    }
                                 }
-                                else {
-                                    tetrisEngine.moveLeft();
-                                    pushPlayerLeftIfNecessary();
+                                break;
+                            case 40: //Down arrow
+                                if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
+                                    if (isFacingRight()) {
+                                        tetrisEngine.moveLeft();
+                                        pushPlayerLeftIfNecessary();
+                                    }
+                                    else {
+                                        tetrisEngine.moveRight();
+                                        pushPlayerRightIfNecessary();
+                                    }
                                 }
-                            }
-                            break;
-                        case 39: //Left arrow
-                            if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
-                                if (isFacingUp()) {
-                                    tetrisEngine.moveLeft();
-                                    pushPlayerLeftIfNecessary();
-                                }
-                                else {
-                                    tetrisEngine.moveRight();
-                                    pushPlayerRightIfNecessary();
-                                }
-                            }
-                            break;
-                        case 40: //Down arrow
-                            if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
-                                if (isFacingRight()) {
-                                    tetrisEngine.moveLeft();
-                                    pushPlayerLeftIfNecessary();
-                                }
-                                else {
-                                    tetrisEngine.moveRight();
-                                    pushPlayerRightIfNecessary();
-                                }
-                            }
-                            break;
-                        case 191: //Forward slash
-                            if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE)
-                                tetrisEngine.rotate();
-                            break;
-                        case 32: //Space
-                            if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE)
-                                tetrisEngine.drop();
-                            break;
+                                break;
+                            case 191: //Forward slash
+                                if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE)
+                                    tetrisEngine.rotate();
+                                break;
+                            case 32: //Space
+                                if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE)
+                                    tetrisEngine.drop();
+                                break;
+                        }
                     }
                 }
 
                 //Key up
                 document.onkeyup = function (keyboardEvent) {
-                    switch (keyboardEvent.keyCode) {
-                        case 87: //W
-                            isMovingForward = false;
-                            break;
-                        case 65: //A
-                            isTurningLeft = false;
-                            break;
-                        case 81: //Q
-                            isSidesteppingLeft = false;
-                            break;
-                        case 69: //E
-                            isSidesteppingRight = false;
-                            break;
-                        case 83: //S
-                            isMovingBackward = false;
-                            break;
-                        case 68: //D
-                            isTurningRight = false;
-                            break;
+                    if (isGameExecuting) {
+                        switch (keyboardEvent.keyCode) {
+                            case 87: //W
+                                isMovingForward = false;
+                                break;
+                            case 65: //A
+                                isTurningLeft = false;
+                                break;
+                            case 81: //Q
+                                isSidesteppingLeft = false;
+                                break;
+                            case 69: //E
+                                isSidesteppingRight = false;
+                                break;
+                            case 83: //S
+                                isMovingBackward = false;
+                                break;
+                            case 68: //D
+                                isTurningRight = false;
+                                break;
+                        }
                     }
                 }
             }
@@ -485,15 +530,17 @@ s<html>
             //-- PRIVATE METHODS --//
             
             function executeAndScheduleTick(lastTickTime, canvasContext) {
+                if (isGameExecuting) {
 
-                //Schedule next tick
-                var currentTickTime = new Date().valueOf();
-                setTimeout(function () {
-                    executeAndScheduleTick(currentTickTime, canvasContext); 
-                }, WORLD_TICK_DELAY);
+                    //Schedule next tick
+                    var currentTickTime = new Date().valueOf();
+                    setTimeout(function () {
+                        executeAndScheduleTick(currentTickTime, canvasContext); 
+                    }, WORLD_TICK_DELAY);
 
-                //Draw
-                drawScreen(canvasContext);
+                    //Draw
+                    drawScreen(canvasContext);
+                }
             }
             
             function initializeAndGetCanvasContext() {
@@ -674,7 +721,7 @@ s<html>
             //-- PRIVATE METHODS --//
 
             function executeAndScheduleTick(initiatingTickIndex) {
-                if (initiatingTickIndex === lastTickIndex) {
+                if (isGameExecuting && initiatingTickIndex === lastTickIndex) {
                     scheduleTick(tickDelay);
                     
                     if(isMovingDownACollision()){
