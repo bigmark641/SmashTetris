@@ -1,4 +1,4 @@
-s<html>
+<html>
 <head>
 </head>
 <body>
@@ -593,6 +593,17 @@ s<html>
                         canvasContext.stroke();
                     }
                 }
+                canvasContext.fillStyle = "#000000";
+                canvasContext.fillRect(playerX * 10 - 1, VIEWPORT_HEIGHT_PIXELS - playerY * 10 - 1, 3, 3);
+                canvasContext.stroke();
+                var leftRayA = playerA + Math.atan(.5 / VIEWPORT_DIST);
+                var leftRayX = playerX + 3 * Math.cos(leftRayA);
+                var leftRayY = playerY + 3 * Math.sin(leftRayA);
+                drawLine(canvasContext, playerX * 10, VIEWPORT_HEIGHT_PIXELS - playerY * 10, leftRayX * 10, VIEWPORT_HEIGHT_PIXELS - leftRayY * 10, "#BBBBBB");
+                var rightRayA = playerA + Math.atan(-.5 / VIEWPORT_DIST);
+                var rightRayX = playerX + 3 * Math.cos(rightRayA);
+                var rightRayY = playerY + 3 * Math.sin(rightRayA);
+                drawLine(canvasContext, playerX * 10, VIEWPORT_HEIGHT_PIXELS - playerY * 10, rightRayX * 10, VIEWPORT_HEIGHT_PIXELS - rightRayY * 10, "#BBBBBB");
 
                 //Draw crosshairs
                 drawLine(canvasContext, VIEWPORT_WIDTH_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2 - VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_WIDTH_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2 + VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_CROSSHAIR_COLOR);
