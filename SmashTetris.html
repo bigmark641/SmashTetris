@@ -784,7 +784,7 @@
 
             self.moveLeft = function () {
                 console.log("Move Tetris piece left.");
-                var newWorld = world.slice(); //slice creates a copy of values, not just reference (I think);
+                var newWorld = createNewWorld();
                 for(var rowIndex = 0; rowIndex < newWorld.length; rowIndex++){
                     for(var cellIndex =0; cellIndex < newWorld[rowIndex].length; cellIndex++){
                         var currentCell = newWorld[rowIndex][cellIndex];
@@ -805,7 +805,7 @@
             self.moveRight = function () {
                 console.log("Move Tetris piece right.");
 
-                var newWorld = world.slice();
+                var newWorld = createNewWorld();
                 for(var rowIndex = 0; rowIndex < newWorld.length; rowIndex++){
                     for(var cellIndex = newWorld[rowIndex].length; cellIndex >= 0; cellIndex--){ //starts from the right side of each array
                         var currentCell = newWorld[rowIndex][cellIndex];
@@ -921,7 +921,7 @@
 
                 var rotatedMatrix = currentTetrisBlock.rotations[newRotation];
 
-                var newWorld = world.slice();
+                var newWorld = createNewWorld();
                 //clear the world
                 for(var r = 0; r<newWorld.length; r++){
                     for(var c=0; c<newWorld[r].length; c++){
@@ -1034,7 +1034,7 @@
                         }
                     }
                 }
-            }            
+            }           
 
             function clearLines(){
                 //find all the 2's and move them 'plus' one level in the array
@@ -1071,6 +1071,41 @@
                     }
                 }
                 return collision;
+            }
+
+            function createNewWorld(){
+                //creates a copy of the world and returns it.
+                var newWorld =[
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+                ];
+
+                for(var r = 0; r < newWorld.length; r++){
+                    for(var c=0; c < newWorld[r].length; c++){
+                        newWorld[r][c] = world[r][c];
+                    }
+                }
+                return newWorld;
             }
 
 
