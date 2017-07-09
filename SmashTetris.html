@@ -39,9 +39,27 @@
         window.WALL_TYPE_ARENA = 1;
         window.WALL_TYPE_PIECE_ACTIVE = 2;
         window.WALL_TYPE_PIECE_INACTIVE = 3;
-        window.CONFIG_VALUE_WAIT_TIME_MILLISECONDS = 1000;
+        window.CONFIG_VALUE_WAIT_TIME_MILLISECONDS = 1000;        
+        window.TETRIS_S = {name:"S", 
+                        initial: [[0,2,2],
+                                  [2,2,0]],
+                        rotations: [
+                            [[2,2,0],
+                             [0,2,2],
+                             [0,0,0]],
+                            [[0,0,2],
+                             [0,2,2],
+                             [0,2,0]],
+                            [[0,0,0],
+                             [2,2,0],
+                             [0,2,2]],
+                            [[0,2,0],
+                             [2,2,0],
+                             [2,0,0]]
+                        ]};
         window.TETRIS_Z = {name:"Z", 
-                        initial: [[2,2,0],[0,2,2]],
+                        initial: [[2,2,0],
+                                  [0,2,2]],
                         rotations: [
                             [[0,2,2],
                              [2,2,0],
@@ -57,10 +75,12 @@
                              [0,2,0]]
                         ]};
         window.TETRIS_O = {name:"O", 
-                        initial: [[2,2],[2,2]],
+                        initial: [[2,2],
+                                  [2,2]],
                         rotations: []};
         window.TETRIS_J = {name:"J", 
-                        initial: [[2,2,2],[2,0,0]],
+                        initial: [[2,2,2],
+                                  [2,0,0]],
                         rotations: [
                             [[2,0,0],
                              [2,2,2],
@@ -76,7 +96,8 @@
                              [2,2,0]]
                         ]};
         window.TETRIS_L = {name:"L", 
-                        initial: [[2,2,2],[0,0,2]],
+                        initial: [[2,2,2],
+                                  [0,0,2]],
                         rotations: [
                             [[0,0,2],
                              [2,2,2],
@@ -92,7 +113,8 @@
                              [0,2,0]]
                         ]};
         window.TETRIS_T = {name:"T", 
-                        initial: [[2,2,2],[0,2,0]],
+                        initial: [[2,2,2],
+                                  [0,2,0]],
                         rotations: [
                             [[0,2,0],
                              [2,2,2],
