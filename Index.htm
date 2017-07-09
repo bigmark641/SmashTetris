@@ -66,9 +66,12 @@
                 frames[0].postMessage(message, "*");
         });
     </script>
+    <!--<br/>
     <code></code>
     <script>
-        $("code").load("SmashTetris.htm");
-    </script>
+        $.get("SmashTetris.htm", function(data) {
+            $("code").text(data);
+        })
+    </script>-->
 </body>
 </html>
