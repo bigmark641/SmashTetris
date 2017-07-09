@@ -39,10 +39,9 @@
         window.WALL_TYPE_ARENA = 1;
         window.WALL_TYPE_PIECE_ACTIVE = 2;
         window.WALL_TYPE_PIECE_INACTIVE = 3;
-        window.CONFIG_VALUE_WAIT_TIME_MILLISECONDS = 1000;        
+        window.CONFIG_VALUE_WAIT_TIME_MILLISECONDS = 1000;
         window.TETRIS_S = {name:"S", 
-                        initial: [[0,2,2],
-                                  [2,2,0]],
+                        initial: [[0,2,2],[2,2,0]],
                         rotations: [
                             [[2,2,0],
                              [0,2,2],
@@ -875,7 +874,7 @@
                         }
                     }
                 }
-                else{ //piece is either OSZ (which we have to find all of the piece, and the rotation we're in, to make sure it's the right center.)
+                if("SZ".indexOf(currentTetrisBlock.name) >= 0) { //piece is either S or Z (which we have to find all of the piece, and the rotation we're in, to make sure it's the right center.)
                     for(var y = 0; y < world.length; y++){
                         for(var x = 0; x <= world[y].length; x++){
                             if(world[y][x] == WALL_TYPE_PIECE_ACTIVE){
@@ -930,6 +929,25 @@
                     }
                 }
 
+                if(currentTetrisBlock.name == "I") {
+                     for(var y = 0; y < world.length; y++){
+                        for(var x = 0; x <= world[y].length; x++){
+                            if(world[y][x] == WALL_TYPE_PIECE_ACTIVE){
+                                if(currentRotation%2 == 0
+                                    && world[y][x-1]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y][x+1]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y][x+2]==WALL_TYPE_PIECE_ACTIVE)
+                                        {center = [y,x];}
+                                if(currentRotation%2 == 1
+                                    && world[y-1][x]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y+1][x]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y+2][x]==WALL_TYPE_PIECE_ACTIVE)
+                                        {center = [y,x];}
+                            }
+                        }
+                     }
+                }
+
                 if(center.length == 0){
                     console.log("We don't have a center, so we won't rotate");
                     //this is more error handling than anything, we SHOULD have a center, but I'm not certain all my matricies are 
@@ -944,7 +962,7 @@
                 var rotatedMatrix = currentTetrisBlock.rotations[newRotation];
 
                 var newWorld = createNewWorld();
-                //clear the world
+                //clear the world, then build it with rotated piece in its new place
                 for(var r = 0; r<newWorld.length; r++){
                     for(var c=0; c<newWorld[r].length; c++){
                         if(newWorld[r][c]==WALL_TYPE_PIECE_ACTIVE){
