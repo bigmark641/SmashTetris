@@ -1,7 +1,7 @@
 <html>
 <head>
 </head>
-<body>
+<body style="margin: 0">
     <canvas id="canvas" style="border: 1px solid black;"></canvas>
     <script>
         "use strict";
@@ -11,48 +11,42 @@
         // Config constants //
         //////////////////////
 
-        var VIEWPORT_WIDTH_PIXELS = 900;    //How many pixels wide the viewport is
-        var VIEWPORT_HEIGHT_PIXELS = 600;   //How many pixels tall the viewport is
-        var VIEWPORT_WIDTH_DEGREES = 75;    //How wide the player can see (between 1 and 179 degrees)
-        var COLUMN_WIDTH_PIXELS = 1;        //How wide each "drawn" line is (1 is highest resolution)
-        var MAX_FRAMERATE = 45;             //The framerate the graphics engine will target
-        var WALL_HEIGHT = 1;                //How tall each wall should be (1 is a cube)
-        var SKY_COLOR = "#0000FF";          //Hex color of the sky
-        var GROUND_COLOR = "#00FF00";       //Hex color of the ground
-        var WALL_COLORS = ["#999999", "#990000", '#706030'];        //Hex colors of the different wall types
-        var WALL_COLORS_FACING = ["#999999", "#DD0000", '#706030']; //Hex colors when the user is pointed at the wall
-        var WALL_SHADING_PERCENT = -15;     //Color difference of perpendicular walls
-        var WALL_DISTANCE_SHADE = -.85;     //How much darker far away objects should appear
-        var PLAYER_TURNING_SPEED = .002;    //How fast the player turns
-        var PLAYER_WALKING_SPEED = .01;     //How fast the player walks
-        var PLAYER_ACCELERATION = .0015;    //How fast the player accelerates
-        var PLAYER_STARTING_X = 8;          //Player's starting X location
-        var PLAYER_STARTING_Y = 2;          //Player's starting Y location
-        var PLAYER_STARTING_ANGLE_DEGREES = 90;             //Direction player is looking at start
-        var VIEWPORT_CROSSHAIR_SIZE_PIXELS = 10;            //The height and width of the crosshairs
-        var VIEWPORT_CROSSHAIR_COLOR = "#000000";           //The color of the crosshairs
-        var TETRIS_STARTING_TICK_SPEED_MILLISECONDS = 2000; //The initial speed of the tetris engine
-        var TETRIS_STARTING_LEVEL = 0;                      //The initial level of the tetris engine
-        var TETRIS_SPEED_PER_LEVEL_MILLISECONDS = 100;      //How much the tetris tick speed decreases each level
-        var TETRIS_DROP_TICK_SPEED_MILLISECONDS = 10;       //The tetris tick speed when pieces are dropping
-        var TETRIS_PIECES = [[[2,2],[2,2]],                 //An array of the possible tetris pieces
+        window.VIEWPORT_WIDTH_PIXELS = 900;    //How many pixels wide the viewport is
+        window.VIEWPORT_HEIGHT_PIXELS = 600;   //How many pixels tall the viewport is
+        window.VIEWPORT_WIDTH_DEGREES = 75;    //How wide the player can see (between 1 and 179 degrees)
+        window.COLUMN_WIDTH_PIXELS = 1;        //How wide each "drawn" line is (1 is highest resolution)
+        window.MAX_FRAMERATE = 45;             //The framerate the graphics engine will target
+        window.WALL_HEIGHT = 1;                //How tall each wall should be (1 is a cube)
+        window.SKY_COLOR = "#0000FF";          //Hex color of the sky
+        window.GROUND_COLOR = "#00FF00";       //Hex color of the ground
+        window.WALL_COLORS = ["#999999", "#990000", '#706030'];        //Hex colors of the different wall types
+        window.WALL_COLORS_FACING = ["#999999", "#DD0000", '#706030']; //Hex colors when the user is pointed at the wall
+        window.WALL_SHADING_PERCENT = -15;     //Color difference of perpendicular walls
+        window.WALL_DISTANCE_SHADE = -.85;     //How much darker far away objects should appear
+        window.PLAYER_TURNING_SPEED = .002;    //How fast the player turns
+        window.PLAYER_WALKING_SPEED = .01;     //How fast the player walks
+        window.PLAYER_ACCELERATION = .0015;    //How fast the player accelerates
+        window.PLAYER_STARTING_X = 8;          //Player's starting X location
+        window.PLAYER_STARTING_Y = 2;          //Player's starting Y location
+        window.PLAYER_STARTING_ANGLE_DEGREES = 90;             //Direction player is looking at start
+        window.VIEWPORT_CROSSHAIR_SIZE_PIXELS = 10;            //The height and width of the crosshairs
+        window.VIEWPORT_CROSSHAIR_COLOR = "#000000";           //The color of the crosshairs
+        window.TETRIS_STARTING_TICK_SPEED_MILLISECONDS = 2000; //The initial speed of the tetris engine
+        window.TETRIS_STARTING_LEVEL = 0;                      //The initial level of the tetris engine
+        window.TETRIS_SPEED_PER_LEVEL_MILLISECONDS = 100;      //How much the tetris tick speed decreases each level
+        window.TETRIS_DROP_TICK_SPEED_MILLISECONDS = 10;       //The tetris tick speed when pieces are dropping
+        window.TETRIS_PIECES = [[[2,2],[2,2]],                 //An array of the possible tetris pieces
                             [[2,2,2,2]],
                             [[0,2,2],[2,2,0]],
                             [[2,2,0],[0,2,2]],
                             [[2,2,2],[2,0,0]],
                             [[2,2,2],[0,0,2]],
                             [[2,2,2],[0,2,0]]];  
-        var WALL_TYPE_NONE = 0;
-        var WALL_TYPE_ARENA = 1;
-        var WALL_TYPE_PIECE_ACTIVE = 2;
-        var WALL_TYPE_PIECE_INACTIVE = 3;
-
-
-        //////////////////////////
-        // Calculated constants //
-        //////////////////////////
-
-        var WORLD_TICK_DELAY = 1000 / MAX_FRAMERATE;
+        window.WALL_TYPE_NONE = 0;
+        window.WALL_TYPE_ARENA = 1;
+        window.WALL_TYPE_PIECE_ACTIVE = 2;
+        window.WALL_TYPE_PIECE_INACTIVE = 3;
+        window.CONFIG_VALUE_WAIT_TIME_MILLISECONDS = 1000;
 
         
         //////////////////////
@@ -83,20 +77,30 @@
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         ];
-        var playerX = PLAYER_STARTING_X;
-        var playerY = PLAYER_STARTING_Y;
-        var playerA = PLAYER_STARTING_ANGLE_DEGREES * 2 * Math.PI / 360;
-        var isGameExecuting = true;
+        var playerX;
+        var playerY;
+        var playerA;
+        var isGameExecuting = false;
 
 
         /////////////////////////
         // Initialization code //
         /////////////////////////
         
-        (function () {
-            var raycastingEngine = new RaycastingEngine();
-            var tetrisEngine = new TetrisEngine();
-            var playerEngine = new PlayerEngine(raycastingEngine, tetrisEngine);
+        (function () {        
+            overrideConfigConstants()
+                .then(function () {
+
+                    //Set initial position
+                    playerX = PLAYER_STARTING_X;
+                    playerY = PLAYER_STARTING_Y;
+                    playerA = PLAYER_STARTING_ANGLE_DEGREES * 2 * Math.PI / 360;
+
+                    //Start engine
+                    var raycastingEngine = new RaycastingEngine();
+                    var tetrisEngine = new TetrisEngine();
+                    var playerEngine = new PlayerEngine(raycastingEngine, tetrisEngine);
+                });
         })();
 
 
@@ -105,7 +109,12 @@
         ///////////////////
 
         function PlayerEngine(raycastingEngine, tetrisEngine) {
-            var self = this;         
+            var self = this;  
+
+
+            //-- PRIVATE MEMBER CONSTANTS --//   
+
+            var TICK_DELAY = 1000 / MAX_FRAMERATE;    
             
 
             //-- PRIVATE MEMBER VARIABLES --//
@@ -138,7 +147,7 @@
                     var currentTickTime = new Date().valueOf();
                     setTimeout(function () {
                         executeAndScheduleTick(currentTickTime); 
-                    }, WORLD_TICK_DELAY);
+                    }, TICK_DELAY);
                     var elapsedTime = currentTickTime - lastTickTime;
 
                     //Move
@@ -442,6 +451,11 @@
             var self = this;
 
 
+            //-- PRIVATE MEMBER CONSTANTS --//   
+
+            var TICK_DELAY = 1000 / MAX_FRAMERATE;  
+
+
             //-- PRIVATE MEMBER CONSTANTS --//
 
             var VERTICAL_WALL_COLORS = WALL_COLORS.map(function (color) { return shadeColor(color, WALL_SHADING_PERCENT); });   
@@ -535,7 +549,7 @@
                 var currentTickTime = new Date().valueOf();
                 setTimeout(function () {
                     executeAndScheduleTick(currentTickTime, canvasContext); 
-                }, WORLD_TICK_DELAY);
+                }, TICK_DELAY);
 
                 //Draw
                 drawScreen(canvasContext);
@@ -879,6 +893,45 @@
                 //updates the speed, used when dropping stops, and when the level goes up.
                 tickDelay = TETRIS_STARTING_TICK_SPEED_MILLISECONDS - (currentLevel * TETRIS_SPEED_PER_LEVEL_MILLISECONDS);
             }
+        }
+        
+
+        //////////////////////
+        // Global functions //
+        //////////////////////
+
+        function overrideConfigConstants() {
+            var callback;
+            
+            //Notify parent window that we're ready to receive config values
+            parent.postMessage("ready", "*");
+
+            //Get config values if posted
+            window.addEventListener('message', function(event) {
+                if (event.data !== "ready") {
+                    isGameExecuting = true;
+                    //Override
+                    for (var key in event.data) {
+                        if (event.data.hasOwnProperty(key)) {
+                            window[key] = event.data[key];
+                        }
+                    }
+                    callback();
+                }
+            });
+
+            //After a while, give up on config values and start the game anyways
+            setTimeout(function() {
+                if (!isGameExecuting) {
+                    isGameExecuting = true;
+                    callback();
+                }
+            }, CONFIG_VALUE_WAIT_TIME_MILLISECONDS);  
+
+            //Return promise
+            return {then: function (promiseCallback) {
+                callback = promiseCallback;
+            }};
         }
     </script>
 </body>
