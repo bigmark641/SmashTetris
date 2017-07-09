@@ -777,14 +777,14 @@
             var tickDelay = TETRIS_STARTING_TICK_SPEED_MILLISECONDS;
             var numberOfLines = 0;
             var currentLevel = TETRIS_STARTING_LEVEL;
-            var currentRotation = 1; //goes from 0 - 3, which says where the blank line is it rotates around.
+            var currentRotation = 0; //goes from 0 - 3, which says where the blank line is it rotates around.
 
 
             //-- PUBLIC METHODS --//
 
             self.moveLeft = function () {
                 console.log("Move Tetris piece left.");
-                var newWorld = world;
+                var newWorld = world.slice(); //slice creates a copy of values, not just reference (I think);
                 for(var rowIndex = 0; rowIndex < newWorld.length; rowIndex++){
                     for(var cellIndex =0; cellIndex < newWorld[rowIndex].length; cellIndex++){
                         var currentCell = newWorld[rowIndex][cellIndex];
@@ -797,7 +797,7 @@
                 }
 
                 if(isNewWorldValid(newWorld)){
-                    world =newWorld;
+                    world = newWorld;
                 }
 
             };
@@ -805,7 +805,7 @@
             self.moveRight = function () {
                 console.log("Move Tetris piece right.");
 
-                var newWorld = world;
+                var newWorld = world.slice();
                 for(var rowIndex = 0; rowIndex < newWorld.length; rowIndex++){
                     for(var cellIndex = newWorld[rowIndex].length; cellIndex >= 0; cellIndex--){ //starts from the right side of each array
                         var currentCell = newWorld[rowIndex][cellIndex];
@@ -817,13 +817,19 @@
                 }
 
                 if(isNewWorldValid(newWorld)){
-                    world =newWorld;
+                    world = newWorld;
                 }
 
             };
 
-            self.rotate = function (angle) { //positive is clockwise, negative is anticlockwise
+            self.rotate = function (angle) {
+                angle = 1;
                 console.log("Rotate Tetris piece.");    
+                //TODO: 
+                // *) add negative/positive rotation (this should just be adding/subbing from currentRotation)
+                // *) add code for rotating I block
+
+
                 //http://tetris.wikia.com/wiki/SRS
                 //now using premade block rotation matrices
                 //we'll find the center, and then throw on new rotation (kept track by the var currentRotation) 
@@ -854,23 +860,47 @@
                                 //basically, we're gonna spin around different squares, given the currentRotation we're on
                                 // so we gotta find the 'center' for each piece/rotation.
                                 if(currentTetrisBlock.name == "S"){
-                                    if(currentRotation == 1 && world[y][x-1]==WALL_TYPE_PIECE_ACTIVE && world[y+1][x]==WALL_TYPE_PIECE_ACTIVE && world[y+1][x+1]==WALL_TYPE_PIECE_ACTIVE)
+                                    if(currentRotation == 0
+                                    && world[y][x-1]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y+1][x]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y+1][x+1]==WALL_TYPE_PIECE_ACTIVE)
                                         {center = [y,x];}
-                                    if(currentRotation == 2 && world[y+1][x]==WALL_TYPE_PIECE_ACTIVE && world[y][x+1]==WALL_TYPE_PIECE_ACTIVE && world[y-1][x+1]==WALL_TYPE_PIECE_ACTIVE)
+                                    if(currentRotation == 1
+                                    && world[y+1][x]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y][x+1]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y-1][x+1]==WALL_TYPE_PIECE_ACTIVE)
                                         {center = [y,x];}
-                                    if(currentRotation == 3 && world[y][x+1]==WALL_TYPE_PIECE_ACTIVE && world[y-1][x]==WALL_TYPE_PIECE_ACTIVE && world[y-1][x-1]==WALL_TYPE_PIECE_ACTIVE)
+                                    if(currentRotation == 2 
+                                    && world[y][x+1]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y-1][x]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y-1][x-1]==WALL_TYPE_PIECE_ACTIVE)
                                        {center = [y,x];}
-                                    if(currentRotation == 0 && world[y-1][x]==WALL_TYPE_PIECE_ACTIVE && world[y][x-1]==WALL_TYPE_PIECE_ACTIVE && world[y+1][x-1]==WALL_TYPE_PIECE_ACTIVE)
+                                    if(currentRotation == 3 
+                                    && world[y-1][x]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y][x-1]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y+1][x-1]==WALL_TYPE_PIECE_ACTIVE)
                                        {center = [y,x];}
                                 }
                                 if(currentTetrisBlock.name == "Z"){
-                                    if(currentRotation == 1 && world[y][x+1]==WALL_TYPE_PIECE_ACTIVE && world[y+1][x]==WALL_TYPE_PIECE_ACTIVE && world[y+1][x-1]==WALL_TYPE_PIECE_ACTIVE)
+                                    if(currentRotation == 0
+                                    && world[y][x+1]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y+1][x]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y+1][x-1]==WALL_TYPE_PIECE_ACTIVE)
                                         {center = [y,x];}
-                                    if(currentRotation == 2 && world[y-1][x]==WALL_TYPE_PIECE_ACTIVE && world[y][x+1]==WALL_TYPE_PIECE_ACTIVE && world[y+1][x+1]==WALL_TYPE_PIECE_ACTIVE)
+                                    if(currentRotation == 1 
+                                    && world[y-1][x]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y][x+1]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y+1][x+1]==WALL_TYPE_PIECE_ACTIVE)
                                        {center = [y,x];}
-                                    if(currentRotation == 3 && world[y][x-1]==WALL_TYPE_PIECE_ACTIVE && world[y-1][x]==WALL_TYPE_PIECE_ACTIVE && world[y-1][x+1]==WALL_TYPE_PIECE_ACTIVE)
+                                    if(currentRotation == 2 
+                                    && world[y][x-1]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y-1][x]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y-1][x+1]==WALL_TYPE_PIECE_ACTIVE)
                                         {center = [y,x];}
-                                    if(currentRotation == 0 && world[y+1][x]==WALL_TYPE_PIECE_ACTIVE && world[y][x-1]==WALL_TYPE_PIECE_ACTIVE && world[y-1][x-1]==WALL_TYPE_PIECE_ACTIVE)
+                                    if(currentRotation == 3 
+                                    && world[y+1][x]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y][x-1]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y-1][x-1]==WALL_TYPE_PIECE_ACTIVE)
                                        {center = [y,x];}
                                 }
                             }
@@ -878,16 +908,20 @@
                     }
                 }
 
-                //we now know the center, which is the cell with a block we're going to project our new rotated matrix onto
-
                 if(center.length == 0){
                     console.log("We don't have a center, so we won't rotate");
+                    //this is more error handling than anything, we SHOULD have a center, but I'm not certain all my matricies are 
+                    // well specified above (or in the original TETRIS_X objects)
                     return;
                 }
 
-                var rotatedMatrix = currentTetrisBlock.rotations[currentRotation];
+                //we now know the center, which is the cell with a block we're going to project our new rotated matrix onto
+                var rotationType = angle > 0 ? 1 : -1;
+                var newRotation = (currentRotation+rotationType)%4;
 
-                var newWorld = world;
+                var rotatedMatrix = currentTetrisBlock.rotations[newRotation];
+
+                var newWorld = world.slice();
                 //clear the world
                 for(var r = 0; r<newWorld.length; r++){
                     for(var c=0; c<newWorld[r].length; c++){
@@ -909,7 +943,7 @@
 
                 if(isNewWorldValid(newWorld)){
                     world = newWorld;
-                    currentRotation = (currentRotation+1)%4;
+                    currentRotation = newRotation;
                 }
                 
      
@@ -1041,14 +1075,15 @@
 
 
             function isNewWorldValid (newWorld){
-                //reduces the worlds to an array, and just makes sure no space that is now a 2 was a filled space (or wall)
-
-                var flatWorld = world.reduce(function(a, b) {return a.concat(b);});
-                var flatNew = newWorld.reduce(function(a, b) {return a.concat(b);});
-
-                for(var i = 0; i < flatWorld.length; i++){
-                    if(flatNew[i] == 2 && (flatWorld[i] == 1 || flatWorld[i] == 3)){
-                        return false;
+                //see if newWorld conflicts with the old world.
+                for(var rowIndex = 0; rowIndex < newWorld.length; rowIndex++){
+                    for(var cellIndex = 0; cellIndex < newWorld[rowIndex].length; cellIndex++){
+                        if(newWorld[rowIndex][cellIndex] == WALL_TYPE_PIECE_ACTIVE){
+                            if(world[rowIndex][cellIndex] == WALL_TYPE_ARENA 
+                            || world[rowIndex][cellIndex] == WALL_TYPE_PIECE_INACTIVE){
+                                return false;
+                            }
+                        }
                     }
                 }
                 return true;
