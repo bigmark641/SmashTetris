@@ -784,36 +784,42 @@
 
             self.moveLeft = function () {
                 console.log("Move Tetris piece left.");
-                if(!isLeftACollision()){
-                //TODO: we need to make sure it doesn't go through existing blocks too.
-                // check from the left, and see if there are empty spaces to the left.
-                    for(var rowIndex = 0; rowIndex < world.length; rowIndex++){
-                        for(var cellIndex =0; cellIndex < world[rowIndex].length; cellIndex++){
-                            var currentCell = world[rowIndex][cellIndex];
+                var newWorld = world;
+                for(var rowIndex = 0; rowIndex < newWorld.length; rowIndex++){
+                    for(var cellIndex =0; cellIndex < newWorld[rowIndex].length; cellIndex++){
+                        var currentCell = newWorld[rowIndex][cellIndex];
 
-                            if(currentCell == WALL_TYPE_PIECE_ACTIVE){
-                                world[rowIndex][cellIndex-1] = WALL_TYPE_PIECE_ACTIVE; //move it 'left'
-                                world[rowIndex][cellIndex] = WALL_TYPE_NONE; //displace the old cell
-                            }
+                        if(currentCell == WALL_TYPE_PIECE_ACTIVE){
+                            newWorld[rowIndex][cellIndex-1] = WALL_TYPE_PIECE_ACTIVE; //move it 'left'
+                            newWorld[rowIndex][cellIndex] = WALL_TYPE_NONE; //displace the old cell
                         }
                     }
                 }
+
+                if(isNewWorldValid(newWorld)){
+                    world =newWorld;
+                }
+
             };
 
             self.moveRight = function () {
                 console.log("Move Tetris piece right.");
-                if(!isRightACollision()){
-                    //if(world.map((a)=>a[10]).indexOf(2) == -1){ //check if we will hit the right side
-                    for(var rowIndex = 0; rowIndex < world.length; rowIndex++){
-                        for(var cellIndex = world[rowIndex].length; cellIndex >= 0; cellIndex--){ //starts from the right side of each array
-                            var currentCell = world[rowIndex][cellIndex];
-                            if(currentCell == WALL_TYPE_PIECE_ACTIVE){
-                                world[rowIndex][cellIndex+1] = WALL_TYPE_PIECE_ACTIVE; //move it 'right'
-                                world[rowIndex][cellIndex] = WALL_TYPE_NONE; //displace the old cell
-                            }
+
+                var newWorld = world;
+                for(var rowIndex = 0; rowIndex < newWorld.length; rowIndex++){
+                    for(var cellIndex = newWorld[rowIndex].length; cellIndex >= 0; cellIndex--){ //starts from the right side of each array
+                        var currentCell = newWorld[rowIndex][cellIndex];
+                        if(currentCell == WALL_TYPE_PIECE_ACTIVE){
+                            newWorld[rowIndex][cellIndex+1] = WALL_TYPE_PIECE_ACTIVE; //move it 'right'
+                            newWorld[rowIndex][cellIndex] = WALL_TYPE_NONE; //displace the old cell
                         }
                     }
                 }
+
+                if(isNewWorldValid(newWorld)){
+                    world =newWorld;
+                }
+
             };
 
             self.rotate = function (angle) { //positive is clockwise, negative is anticlockwise
@@ -832,8 +838,10 @@
                 for(var rowIndex = 0; rowIndex < world.length; rowIndex++){
                     for(var cellIndex = 0; cellIndex <= world[rowIndex].length; cellIndex++){
                         if(world[rowIndex][cellIndex] == 2){
-                            if((world[rowIndex-1][cellIndex] == 2 && world[rowIndex+1][cellIndex] == 2) //left-right are 2's
-                            || (world[rowIndex][cellIndex-1] == 2 && world[rowIndex][cellIndex+1] == 2)){ //up-down are 2's
+                            if((world[rowIndex-1][cellIndex] == WALL_TYPE_PIECE_ACTIVE 
+                              && world[rowIndex+1][cellIndex] == WALL_TYPE_PIECE_ACTIVE) //left-right are 2's
+                            || (world[rowIndex][cellIndex-1] == WALL_TYPE_PIECE_ACTIVE 
+                              && world[rowIndex][cellIndex+1] == WALL_TYPE_PIECE_ACTIVE)){ //up-down are 2's
                                 center = [rowIndex, cellIndex];
                             }
                         }
@@ -842,27 +850,27 @@
                 else{ //piece is either OSZ (which we have to find all of the piece, and the rotation we're in, to make sure it's the right center.)
                     for(var y = 0; y < world.length; y++){
                         for(var x = 0; x <= world[y].length; x++){
-                            if(world[y][x] == 2){
+                            if(world[y][x] == WALL_TYPE_PIECE_ACTIVE){
                                 //basically, we're gonna spin around different squares, given the currentRotation we're on
                                 // so we gotta find the 'center' for each piece/rotation.
                                 if(currentTetrisBlock.name == "S"){
-                                    if(currentRotation == 1 && world[y][x-1]==2 && world[y+1][x]==2 && world[y+1][x+1]==2)
+                                    if(currentRotation == 1 && world[y][x-1]==WALL_TYPE_PIECE_ACTIVE && world[y+1][x]==WALL_TYPE_PIECE_ACTIVE && world[y+1][x+1]==WALL_TYPE_PIECE_ACTIVE)
                                         {center = [y,x];}
-                                    if(currentRotation == 2 && world[y+1][x]==2 && world[y][x+1]==2 && world[y-1][x+1]==2)
+                                    if(currentRotation == 2 && world[y+1][x]==WALL_TYPE_PIECE_ACTIVE && world[y][x+1]==WALL_TYPE_PIECE_ACTIVE && world[y-1][x+1]==WALL_TYPE_PIECE_ACTIVE)
                                         {center = [y,x];}
-                                    if(currentRotation == 3 && world[y][x+1]==2 && world[y-1][x]==2 && world[y-1][x-1]==2)
+                                    if(currentRotation == 3 && world[y][x+1]==WALL_TYPE_PIECE_ACTIVE && world[y-1][x]==WALL_TYPE_PIECE_ACTIVE && world[y-1][x-1]==WALL_TYPE_PIECE_ACTIVE)
                                        {center = [y,x];}
-                                    if(currentRotation == 0 && world[y-1][x]==2 && world[y][x-1]==2 && world[y+1][x-1]==2)
+                                    if(currentRotation == 0 && world[y-1][x]==WALL_TYPE_PIECE_ACTIVE && world[y][x-1]==WALL_TYPE_PIECE_ACTIVE && world[y+1][x-1]==WALL_TYPE_PIECE_ACTIVE)
                                        {center = [y,x];}
                                 }
                                 if(currentTetrisBlock.name == "Z"){
-                                    if(currentRotation == 1 && world[y][x+1]==2 && world[y+1][x]==2 && world[y+1][x-1]==2)
+                                    if(currentRotation == 1 && world[y][x+1]==WALL_TYPE_PIECE_ACTIVE && world[y+1][x]==WALL_TYPE_PIECE_ACTIVE && world[y+1][x-1]==WALL_TYPE_PIECE_ACTIVE)
                                         {center = [y,x];}
-                                    if(currentRotation == 2 && world[y-1][x]==2 && world[y][x+1]==2 && world[y+1][x+1]==2)
+                                    if(currentRotation == 2 && world[y-1][x]==WALL_TYPE_PIECE_ACTIVE && world[y][x+1]==WALL_TYPE_PIECE_ACTIVE && world[y+1][x+1]==WALL_TYPE_PIECE_ACTIVE)
                                        {center = [y,x];}
-                                    if(currentRotation == 3 && world[y][x-1]==2 && world[y-1][x]==2 && world[y-1][x+1]==2)
+                                    if(currentRotation == 3 && world[y][x-1]==WALL_TYPE_PIECE_ACTIVE && world[y-1][x]==WALL_TYPE_PIECE_ACTIVE && world[y-1][x+1]==WALL_TYPE_PIECE_ACTIVE)
                                         {center = [y,x];}
-                                    if(currentRotation == 0 && world[y+1][x]==2 && world[y][x-1]==2 && world[y-1][x-1]==2)
+                                    if(currentRotation == 0 && world[y+1][x]==WALL_TYPE_PIECE_ACTIVE && world[y][x-1]==WALL_TYPE_PIECE_ACTIVE && world[y-1][x-1]==WALL_TYPE_PIECE_ACTIVE)
                                        {center = [y,x];}
                                 }
                             }
@@ -883,18 +891,18 @@
                 //clear the world
                 for(var r = 0; r<newWorld.length; r++){
                     for(var c=0; c<newWorld[r].length; c++){
-                        if(newWorld[r][c]==2){
-                            newWorld[r][c] = 0;
+                        if(newWorld[r][c]==WALL_TYPE_PIECE_ACTIVE){
+                            newWorld[r][c] = WALL_TYPE_NONE;
                         }
                     }
                 }
                 //put in the new piece.
                 for(var rowIndex = 0; rowIndex < rotatedMatrix.length; rowIndex++){
                     for(var cellIndex = 0; cellIndex < rotatedMatrix[rowIndex].length; cellIndex++){
-                        if(rotatedMatrix[rowIndex][cellIndex] == 2){
+                        if(rotatedMatrix[rowIndex][cellIndex] == WALL_TYPE_PIECE_ACTIVE){
                             var y_coord = center[0] + rowIndex - 1;  //-1 is to ofset our 3x3 matrix so [1,1] is the center.
                             var x_coord = center[1] + cellIndex - 1; 
-                            newWorld[y_coord][x_coord] = 2;
+                            newWorld[y_coord][x_coord] = WALL_TYPE_PIECE_ACTIVE;
                         }
                     }
                 }
@@ -1031,43 +1039,6 @@
                 return collision;
             }
 
-            function isLeftACollision(){
-                //find all the active pieces and move them 'plus' one level in the array
-                var collision = false;
-                for(var rowIndex = world.length-1; rowIndex > 0; rowIndex--){ //start at the last row and work up
-                    var currentRow = world[rowIndex];
-                    for(var cellIndex = 1; cellIndex < currentRow.length; cellIndex++){
-                        if(currentRow[cellIndex] == WALL_TYPE_PIECE_ACTIVE){
-                            var cellLeftOfCurrentCell = world[rowIndex][cellIndex-1];
-                            if(cellLeftOfCurrentCell == WALL_TYPE_ARENA ||
-                                cellLeftOfCurrentCell == WALL_TYPE_PIECE_INACTIVE ){
-                                    collision = true;
-                                    return collision;
-                                }
-                        }
-                    }
-                }
-                return collision;
-            }
-
-            function isRightACollision(){
-                //find all the active pieces and move them 'plus' one level in the array
-                var collision = false;
-                for(var rowIndex = world.length-1; rowIndex > 0; rowIndex--){ //start at the last row and work up
-                    var currentRow = world[rowIndex];
-                    for(var cellIndex = currentRow.length+1; cellIndex > 0; cellIndex--){
-                        if(currentRow[cellIndex] == WALL_TYPE_PIECE_ACTIVE){
-                            var cellRightOfCurrentCell = world[rowIndex][cellIndex+1];
-                            if(cellRightOfCurrentCell == WALL_TYPE_ARENA ||
-                                cellRightOfCurrentCell == WALL_TYPE_PIECE_INACTIVE ){
-                                    collision = true;
-                                    return collision;
-                                }
-                        }
-                    }
-                }
-                return collision;
-            }
 
             function isNewWorldValid (newWorld){
                 //reduces the worlds to an array, and just makes sure no space that is now a 2 was a filled space (or wall)
