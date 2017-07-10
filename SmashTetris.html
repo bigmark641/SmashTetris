@@ -245,6 +245,7 @@
             
             (function () {
                 tetrisEngine.pieceMovedDownCallback = pushPlayerDownIfNecessary;
+                tetrisEngine.playerLostCallback = playerLostTetris;
                 attachKeyboardListeners();                
                 executeAndScheduleTick(new Date().valueOf());
             })();
@@ -433,6 +434,11 @@
                 }
             }
 
+            function playerLostTetris() {                
+                console.log("Player lost Tetris!");
+                isGameExecuting = false;
+            }
+
             function isFacingRight () {
                 return (playerA > (3/2)*Math.PI)
                     || (playerA < (1/2)*Math.PI);
@@ -518,6 +524,10 @@
                                 if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE)
                                     tetrisEngine.rotate(-1);
                                 break;
+                            case 190: //Peroid
+                                if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE)
+                                    tetrisEngine.rotate(1);
+                                break;
                             case 32: //Space
                                 if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE)
                                     tetrisEngine.drop();
@@ -547,6 +557,9 @@
                                 break;
                             case 68: //D
                                 isTurningRight = false;
+                                break;
+                            case 32: //Space
+                                tetrisEngine.cancelDrop();
                                 break;
                         }
                     }
@@ -1004,7 +1017,20 @@
                 scheduleTick(0);
             };
 
+            self.cancelDrop = function () {
+
+                //Update the speed
+                var oldTickDelay = tickDelay;
+                updateSpeedIfNecessary();
+
+                //Reset the tick if speed was updated
+                if (tickDelay != oldTickDelay)
+                    scheduleTick(tickDelay);
+            };
+
             self.pieceMovedDownCallback = null;
+
+            self.playerLostCallback = null;
 
 
             //-- CONSTRUCTOR CODE --//
