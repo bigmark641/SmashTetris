@@ -516,7 +516,7 @@
                                 break;
                             case 191: //Forward slash
                                 if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE)
-                                    tetrisEngine.rotate();
+                                    tetrisEngine.rotate(-1);
                                 break;
                             case 32: //Space
                                 if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE)
@@ -844,7 +844,9 @@
             };
 
             self.rotate = function (angle) {
-                angle = 1;
+                angle = angle || 1;
+                angle = angle > 0 ? 1 : -1;
+                
                 console.log("Rotate Tetris piece.");    
                 //TODO: 
                 // *) add negative/positive rotation (this should just be adding/subbing from currentRotation)
@@ -957,6 +959,9 @@
 
                 //we now know the center, which is the cell with a block we're going to project our new rotated matrix onto
                 var rotationType = angle > 0 ? 1 : -1;
+                if(currentRotation+rotationType < 0){
+                    rotationType+= 4;
+                }
                 var newRotation = (currentRotation+rotationType)%4;
 
                 var rotatedMatrix = currentTetrisBlock.rotations[newRotation];
