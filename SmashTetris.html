@@ -237,6 +237,7 @@
             var isSidesteppingRight = false;
             var isTurningLeft = false;
             var isTurningRight = false;
+            var isDropping = false;
             var velocityX = 0;
             var velocityY = 0;
             
@@ -263,9 +264,17 @@
                     }, TICK_DELAY);
                     var elapsedTime = currentTickTime - lastTickTime;
 
-                    //Move
+                    //Do player actions
+                    dropPieceIfNecessary();
                     movePlayer(elapsedTime);
                 }
+            }
+
+            function dropPieceIfNecessary() {
+                if (isDropping && raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE)
+                    tetrisEngine.drop();
+                else
+                    tetrisEngine.cancelDrop();
             }
 
             function movePlayer(elapsedTime) {
@@ -529,8 +538,7 @@
                                     tetrisEngine.rotate(1);
                                 break;
                             case 32: //Space
-                                if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE)
-                                    tetrisEngine.drop();
+                                isDropping = true;
                                 break;
                         }
                     }
@@ -559,7 +567,7 @@
                                 isTurningRight = false;
                                 break;
                             case 32: //Space
-                                tetrisEngine.cancelDrop();
+                                isDropping = false;
                                 break;
                         }
                     }
