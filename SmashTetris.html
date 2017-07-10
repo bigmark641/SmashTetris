@@ -166,8 +166,8 @@
 
         var world = [
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 1],
-            [1, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -1037,16 +1037,27 @@
 
             function addBlock(){
                 
+
                 currentTetrisBlock = TETRIS_PIECES[Math.floor(Math.random()*(TETRIS_PIECES.length))]; //shuffle the pieces and grab one
                 var newBlock = currentTetrisBlock.initial; 
                 var length = newBlock[0].length;
                 var startingCell = (10/2)-Math.floor(length/2);
                 for(var rowIndex = 0; rowIndex < newBlock.length; rowIndex++){
                     for(var cellIndex = 0; cellIndex < newBlock[rowIndex].length; cellIndex++){
-                        world[world.length-2-rowIndex][startingCell+cellIndex] = newBlock[rowIndex][cellIndex];
+                        //if the cell is already filled, game over.
+                        if(world[world.length-2-rowIndex][startingCell+cellIndex] == WALL_TYPE_PIECE_INACTIVE){ 
+                            if (self.playerLostCallback !== null){
+                                console.log("LOST: all filled up");
+                                self.playerLostCallback();
+                            }
+                        }else{ //place the new block;
+                            world[world.length-2-rowIndex][startingCell+cellIndex] = newBlock[rowIndex][cellIndex];
+                        }
+                        
                     }                    
                 }
                 currentRotation = 0;
+                
             }
 
             function movePieceDown(){
