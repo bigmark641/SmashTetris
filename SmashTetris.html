@@ -27,7 +27,7 @@
         window.PLAYER_WALKING_SPEED = .01;     //How fast the player walks
         window.PLAYER_ACCELERATION = .0015;    //How fast the player accelerates
         window.PLAYER_STARTING_X = 8;          //Player's starting X location
-        window.PLAYER_STARTING_Y = 2;          //Player's starting Y location
+        window.PLAYER_STARTING_Y = 4;          //Player's starting Y location
         window.PLAYER_STARTING_ANGLE_DEGREES = 90;             //Direction player is looking at start
         window.VIEWPORT_CROSSHAIR_SIZE_PIXELS = 10;            //The height and width of the crosshairs
         window.VIEWPORT_CROSSHAIR_COLOR = "#000000";           //The color of the crosshairs
@@ -149,13 +149,13 @@
                              [0,2,0,0]]
                         ]};
          window.TETRIS_PIECES = [                               //An array of the possible tetris pieces
-                            window.TETRIS_S,
-                            window.TETRIS_Z,
-                            window.TETRIS_O,
+                            //window.TETRIS_S,
+                            //window.TETRIS_Z,
+                            //window.TETRIS_O,
                             window.TETRIS_I,
-                            window.TETRIS_L,
-                            window.TETRIS_J,
-                            window.TETRIS_T
+                           // window.TETRIS_L,
+                           // window.TETRIS_J,
+                           // window.TETRIS_T
                             ];                           
 
 
@@ -166,8 +166,8 @@
 
         var world = [
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 1],
+            [1, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -1036,12 +1036,7 @@
             }
 
             function addBlock(){
-                if(world[world.length-2][6] == WALL_TYPE_PIECE_INACTIVE){ //is the top middle brick already filled?
-                    if (self.playerLostCallback !== null){
-                        console.log("LOST: all filled up");
-                        self.playerLostCallback();
-                    }
-                }
+                
                 currentTetrisBlock = TETRIS_PIECES[Math.floor(Math.random()*(TETRIS_PIECES.length))]; //shuffle the pieces and grab one
                 var newBlock = currentTetrisBlock.initial; 
                 var length = newBlock[0].length;
@@ -1088,7 +1083,7 @@
                         //maybe we can flash the row a special color?
                         world.splice(rowIndex,1);  //remove that row
                         world.splice(20,0,[1,0,0,0,0,0,0,0,0,0,0,1]); //push a blank row at top
-                        
+                        clearLines();
                         //add a line, and maybe speed up
                         numberOfLines++;
                         if(numberOfLines >= ((currentLevel*10)+10)){
