@@ -1036,6 +1036,12 @@
             }
 
             function addBlock(){
+                if(world[world.length-2][6] == WALL_TYPE_PIECE_INACTIVE){ //is the top middle brick already filled?
+                    if (self.playerLostCallback !== null){
+                        console.log("LOST: all filled up");
+                        self.playerLostCallback();
+                    }
+                }
                 currentTetrisBlock = TETRIS_PIECES[Math.floor(Math.random()*(TETRIS_PIECES.length))]; //shuffle the pieces and grab one
                 var newBlock = currentTetrisBlock.initial; 
                 var length = newBlock[0].length;
@@ -1065,8 +1071,6 @@
             }
 
             function setPiece(){
-                //turn all 2's into 3's
-                //maybe we can do madness here, and convert the array to string and replace all the 2's with 3's
                 for(var rowIndex = 0; rowIndex < world.length; rowIndex++){
                     for(var cellIndex = 0; cellIndex < world[rowIndex].length; cellIndex++){
                         var currentCell = world[rowIndex][cellIndex];
