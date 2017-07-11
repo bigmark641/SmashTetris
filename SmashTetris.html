@@ -832,6 +832,10 @@
                 return score;
             }
 
+            self.getLevel = function () {
+                return currentLevel;
+            }
+
             self.moveLeft = function () {
                 console.log("Move Tetris piece left.");
                 var newWorld = createNewWorld();
