@@ -17,10 +17,10 @@
         window.COLUMN_WIDTH_PIXELS = 1;        //How wide each "drawn" line is (1 is highest resolution)
         window.MAX_FRAMERATE = 45;             //The framerate the graphics engine will target
         window.WALL_HEIGHT = 1;                //How tall each wall should be (1 is a cube)
-        window.SKY_COLOR = "#0000FF";          //Hex color of the sky
-        window.GROUND_COLOR = "#00FF00";       //Hex color of the ground
-        window.WALL_COLORS = ["#999999", "#990000", '#706030'];        //Hex colors of the different wall types
-        window.WALL_COLORS_FACING = ["#999999", "#DD0000", '#706030']; //Hex colors when the user is pointed at the wall
+        window.SKY_COLOR = "#99d9ea";          //Hex color of the sky
+        window.GROUND_COLOR = "#22b14c";       //Hex color of the ground
+        window.WALL_COLORS = ["#999999", "#990000", '#00002d'];        //Hex colors of the different wall types
+        window.WALL_COLORS_FACING = ["#999999", "#DD0000", '#00002d']; //Hex colors when the user is pointed at the wall
         window.WALL_SHADING_PERCENT = -15;     //Color difference of perpendicular walls
         window.WALL_DISTANCE_SHADE = -.85;     //How much darker far away objects should appear
         window.PLAYER_TURNING_SPEED = .002;    //How fast the player turns
@@ -43,35 +43,35 @@
         window.TETRIS_S = {name:"S", 
                         initial: [[0,2,2],[2,2,0]],
                         rotations: [
-                            [[2,2,0],
-                             [0,2,2],
-                             [0,0,0]],
+                            [[0,0,0],
+                             [2,2,0],
+                             [0,2,2]],
                             [[0,0,2],
                              [0,2,2],
                              [0,2,0]],
                             [[0,0,0],
                              [2,2,0],
                              [0,2,2]],
-                            [[0,2,0],
-                             [2,2,0],
-                             [2,0,0]]
+                            [[0,0,2],
+                             [0,2,2],
+                             [0,2,0]]
                         ]};
         window.TETRIS_Z = {name:"Z", 
                         initial: [[2,2,0],
                                   [0,2,2]],
                         rotations: [
-                            [[0,2,2],
-                             [2,2,0],
-                             [0,0,0]],
+                            [[0,0,0],
+                             [0,2,2],
+                             [2,2,0]],
                             [[0,2,0],
                              [0,2,2],
                              [0,0,2]],
                             [[0,0,0],
                              [0,2,2],
                              [2,2,0]],
-                            [[2,0,0],
-                             [2,2,0],
-                             [0,2,0]]
+                            [[0,2,0],
+                             [0,2,2],
+                             [0,0,2]]
                         ]};
         window.TETRIS_O = {name:"O", 
                         initial: [[2,2],
@@ -132,8 +132,8 @@
                         initial: [[2,2,2,2]],
                         rotations: [
                             [[0,0,0,0],
-                             [2,2,2,2],
                              [0,0,0,0],
+                             [2,2,2,2],
                              [0,0,0,0]],
                             [[0,0,2,0],
                              [0,0,2,0],
@@ -143,16 +143,16 @@
                              [0,0,0,0],
                              [2,2,2,2],
                              [0,0,0,0]],
-                            [[0,2,0,0],
-                             [0,2,0,0],
-                             [0,2,0,0],
-                             [0,2,0,0]]
+                            [[0,0,2,0],
+                             [0,0,2,0],
+                             [0,0,2,0],
+                             [0,0,2,0]]
                         ]};
          window.TETRIS_PIECES = [                               //An array of the possible tetris pieces
                             window.TETRIS_S,
                             window.TETRIS_Z,
+                            window.TETRIS_I,                            
                             window.TETRIS_O,
-                            window.TETRIS_I,
                             window.TETRIS_L,
                             window.TETRIS_J,
                             window.TETRIS_T
@@ -916,9 +916,9 @@
                                 // so we gotta find the 'center' for each piece/rotation.
                                 if(currentTetrisBlock.name == "S"){
                                     if(currentRotation == 0
-                                    && world[y][x-1]==WALL_TYPE_PIECE_ACTIVE 
-                                    && world[y+1][x]==WALL_TYPE_PIECE_ACTIVE 
-                                    && world[y+1][x+1]==WALL_TYPE_PIECE_ACTIVE)
+                                    && world[y][x+1]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y-1][x]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y-1][x-1]==WALL_TYPE_PIECE_ACTIVE)
                                         {center = [y,x];}
                                     if(currentRotation == 1
                                     && world[y+1][x]==WALL_TYPE_PIECE_ACTIVE 
@@ -931,16 +931,16 @@
                                     && world[y-1][x-1]==WALL_TYPE_PIECE_ACTIVE)
                                        {center = [y,x];}
                                     if(currentRotation == 3 
-                                    && world[y-1][x]==WALL_TYPE_PIECE_ACTIVE 
-                                    && world[y][x-1]==WALL_TYPE_PIECE_ACTIVE 
-                                    && world[y+1][x-1]==WALL_TYPE_PIECE_ACTIVE)
+                                    && world[y+1][x]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y][x+1]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y-1][x+1]==WALL_TYPE_PIECE_ACTIVE)
                                        {center = [y,x];}
                                 }
                                 if(currentTetrisBlock.name == "Z"){
                                     if(currentRotation == 0
-                                    && world[y][x+1]==WALL_TYPE_PIECE_ACTIVE 
-                                    && world[y+1][x]==WALL_TYPE_PIECE_ACTIVE 
-                                    && world[y+1][x-1]==WALL_TYPE_PIECE_ACTIVE)
+                                    && world[y][x-1]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y-1][x]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y-1][x+1]==WALL_TYPE_PIECE_ACTIVE)
                                         {center = [y,x];}
                                     if(currentRotation == 1 
                                     && world[y-1][x]==WALL_TYPE_PIECE_ACTIVE 
@@ -953,15 +953,17 @@
                                     && world[y-1][x+1]==WALL_TYPE_PIECE_ACTIVE)
                                         {center = [y,x];}
                                     if(currentRotation == 3 
-                                    && world[y+1][x]==WALL_TYPE_PIECE_ACTIVE 
-                                    && world[y][x-1]==WALL_TYPE_PIECE_ACTIVE 
-                                    && world[y-1][x-1]==WALL_TYPE_PIECE_ACTIVE)
+                                    && world[y-1][x]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y][x+1]==WALL_TYPE_PIECE_ACTIVE 
+                                    && world[y+1][x+1]==WALL_TYPE_PIECE_ACTIVE)
                                        {center = [y,x];}
                                 }
                             }
                         }
                     }
                 }
+
+                console.log(center);
 
                 if(currentTetrisBlock.name == "I") {
                      for(var y = 0; y < world.length; y++){
