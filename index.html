@@ -8,13 +8,13 @@
     <br />
     <strong>Click on the game to begin.</strong><br />
     <br />
-    Use WASD to move.  Q and E sidesteps.  "Shoot" a piece with the arrow keys to move it.  Slash and period rotate.  Space drops.<br/>
+    Use WASD to walk.  Q and E sidestep.  "Shoot" a piece with the left and right arrows to move it, up to rotate, and down to drop.<br/>
     <br />
     Don't get smashed.<br />
     <br />
     <br />
     <br />
-    Click <a onclick="$('form').show();" style="text-decoration: underline">here</a> for config/debugging overrides.
+    Click <a onclick="$('form').toggle();" style="text-decoration: underline">here</a> for config/debugging overrides.
     <form action="#" style="display: none">
         VIEWPORT_WIDTH_PIXELS: <input id="VIEWPORT_WIDTH_PIXELS" value="900" />How many pixels wide the viewport is<br/>
         VIEWPORT_HEIGHT_PIXELS: <input id="VIEWPORT_HEIGHT_PIXELS" value="600" />How many pixels tall the viewport is<br/>
@@ -47,6 +47,7 @@
             $("iframe").attr("width", Number($('#VIEWPORT_WIDTH_PIXELS').val()) + 2);
             $("iframe").attr("height", Number($('#VIEWPORT_HEIGHT_PIXELS').val()) + 2);
             $("iframe").attr("src", $("iframe").attr("src"));
+            $('form').hide();
         });
 
         //Send message when iframe is ready
