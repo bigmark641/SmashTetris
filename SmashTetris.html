@@ -31,7 +31,7 @@
         window.PLAYER_STARTING_ANGLE_DEGREES = 90;             //Direction player is looking at start
         window.VIEWPORT_CROSSHAIR_SIZE_PIXELS = 10;            //The height and width of the crosshairs
         window.VIEWPORT_CROSSHAIR_COLOR = "#000000";           //The color of the crosshairs
-        window.TETRIS_STARTING_TICK_SPEED_MILLISECONDS = 2000; //The initial speed of the tetris engine
+        window.TETRIS_STARTING_TICK_SPEED_MILLISECONDS = 50000; //The initial speed of the tetris engine
         window.TETRIS_STARTING_LEVEL = 0;                      //The initial level of the tetris engine
         window.TETRIS_SPEED_PER_LEVEL_MILLISECONDS = 100;      //How much the tetris tick speed decreases each level
         window.TETRIS_DROP_TICK_SPEED_MILLISECONDS = 10;       //The tetris tick speed when pieces are dropping
@@ -42,17 +42,18 @@
         window.WALL_TYPE_PIECE_INACTIVE = 3;
         window.CONFIG_VALUE_WAIT_TIME_MILLISECONDS = 1000;
         window.TETRIS_S = {name:"S", 
-                        initial: [[0,2,2],[2,2,0]],
+                        initial: [[0,2,2],
+                                  [2,2,0]],
                         rotations: [
-                            [[0,0,0],
-                             [2,2,0],
-                             [0,2,2]],
+                            [[2,2,0],
+                             [0,2,2],
+                             [0,0,0]],
                             [[0,0,2],
                              [0,2,2],
                              [0,2,0]],
-                            [[0,0,0],
-                             [2,2,0],
-                             [0,2,2]],
+                            [[2,2,0],
+                             [0,2,2],
+                             [0,0,0]],
                             [[0,0,2],
                              [0,2,2],
                              [0,2,0]]
@@ -61,15 +62,15 @@
                         initial: [[2,2,0],
                                   [0,2,2]],
                         rotations: [
-                            [[0,0,0],
-                             [0,2,2],
-                             [2,2,0]],
+                            [[0,2,2],
+                             [2,2,0],
+                             [0,0,0]],
                             [[0,2,0],
                              [0,2,2],
                              [0,0,2]],
-                            [[0,0,0],
-                             [0,2,2],
-                             [2,2,0]],
+                            [[0,2,2],
+                             [2,2,0],
+                             [0,0,0]],
                             [[0,2,0],
                              [0,2,2],
                              [0,0,2]]
@@ -132,22 +133,22 @@
         window.TETRIS_I = {name:"I", 
                         initial: [[2,2,2,2]],
                         rotations: [
-                            [[0,0,0,0],
+                            [[2,2,2,2],
                              [0,0,0,0],
-                             [2,2,2,2],
-                             [0,0,0,0]],
-                            [[0,0,2,0],
-                             [0,0,2,0],
-                             [0,0,2,0],
-                             [0,0,2,0]],
-                            [[0,0,0,0],
                              [0,0,0,0],
-                             [2,2,2,2],
                              [0,0,0,0]],
-                            [[0,0,2,0],
-                             [0,0,2,0],
-                             [0,0,2,0],
-                             [0,0,2,0]]
+                            [[2,0,0,0],
+                             [2,0,0,0],
+                             [2,0,0,0],
+                             [2,0,0,0]],
+                            [[2,2,2,2],
+                             [0,0,0,0],
+                             [0,0,0,0],
+                             [0,0,0,0]],
+                            [[2,0,0,0],
+                             [2,0,0,0],
+                             [2,0,0,0],
+                             [2,0,0,0]]
                         ]};
          window.TETRIS_PIECES = [                               //An array of the possible tetris pieces
                             window.TETRIS_S,
@@ -157,7 +158,7 @@
                             window.TETRIS_L,
                             window.TETRIS_J,
                             window.TETRIS_T
-                            ];                           
+                            ];       
 
 
         
@@ -188,7 +189,7 @@
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        ];
+        ]; //first row is bottom of world, left is left, right is right.
         var playerX;
         var playerY;
         var playerA;
@@ -949,10 +950,7 @@
                 angle = angle || 1;
                 angle = angle > 0 ? 1 : -1;
                 
-                console.log("Rotate Tetris piece.");    
-                //TODO: 
-                // *) add code for rotating I block
-
+                console.log("Rotate Tetris piece.");
 
                 //http://tetris.wikia.com/wiki/SRS
                 //now using premade block rotation matrices
@@ -1079,12 +1077,32 @@
                     }
                 }
                 //put in the new piece.
-                for(var rowIndex = 0; rowIndex < rotatedMatrix.length; rowIndex++){
-                    for(var cellIndex = 0; cellIndex < rotatedMatrix[rowIndex].length; cellIndex++){
-                        if(rotatedMatrix[rowIndex][cellIndex] == WALL_TYPE_PIECE_ACTIVE){
-                            var y_coord = center[0] + rowIndex - 1;  //-1 is to ofset our 3x3 matrix so [1,1] is the center.
-                            var x_coord = center[1] + cellIndex - 1; 
-                            newWorld[y_coord][x_coord] = WALL_TYPE_PIECE_ACTIVE;
+                if(currentTetrisBlock.name == "I"){
+                    //the 4x4 block is so weird, I'm just going to hardcode the piece placement. -af
+                    if(newRotation%2 == 1){ //vertical
+                        newWorld[center[0]+2][center[1]] = WALL_TYPE_PIECE_ACTIVE;
+                        newWorld[center[0]+1][center[1]] = WALL_TYPE_PIECE_ACTIVE;
+                        newWorld[center[0]][center[1]] = WALL_TYPE_PIECE_ACTIVE;
+                        newWorld[center[0]-1][center[1]] = WALL_TYPE_PIECE_ACTIVE;
+                    }
+                    else{ //horizontal
+                        newWorld[center[0]][center[1]-1] = WALL_TYPE_PIECE_ACTIVE;
+                        newWorld[center[0]][center[1]] = WALL_TYPE_PIECE_ACTIVE;
+                        newWorld[center[0]][center[1]+1] = WALL_TYPE_PIECE_ACTIVE;
+                        newWorld[center[0]][center[1]+2] = WALL_TYPE_PIECE_ACTIVE;
+                    }
+
+                }
+                else{ //for all other pieces we can use a 3x3 grid.
+                    for(var rowIndex = 0; rowIndex < rotatedMatrix.length; rowIndex++){
+                        var offset = -1; //offset so in our 3x3 matrix [1,1] is now the center;
+                        for(var cellIndex = 0; cellIndex < rotatedMatrix[rowIndex].length; cellIndex++){
+                            if(rotatedMatrix[rowIndex][cellIndex] == WALL_TYPE_PIECE_ACTIVE){
+                                
+                                var y_coord = center[0] + rowIndex + offset; 
+                                var x_coord = center[1] + cellIndex + offset; 
+                                newWorld[y_coord][x_coord] = WALL_TYPE_PIECE_ACTIVE;
+                            }
                         }
                     }
                 }
@@ -1096,10 +1114,6 @@
                 
      
             };
-
-            self.down = function(){
-                movePieceDown();
-            }
 
             self.drop = function () {
 
@@ -1149,7 +1163,7 @@
                         scheduleTick(tickDelay);
                     }
                     else{
-                        //movePieceDown();
+                        movePieceDown();
                     }
                 }
             }
@@ -1170,13 +1184,18 @@
                 for(var rowIndex = 0; rowIndex < newBlock.length; rowIndex++){
                     for(var cellIndex = 0; cellIndex < newBlock[rowIndex].length; cellIndex++){
                         //if the cell is already filled, game over.
-                        if(world[world.length-2-rowIndex][startingCell+cellIndex] == WALL_TYPE_PIECE_INACTIVE){ 
+                        var yLocation = world.length-2; // -2 for the 2 edge pieces in the world array
+                        yLocation = yLocation-rowIndex; //move down another row for each rowIndex
+
+                        var xLocation = startingCell+cellIndex; //the middle of the screen plus the index we're at on the new piece
+
+                        if(world[yLocation][xLocation] == WALL_TYPE_PIECE_INACTIVE){ 
                             if (self.playerLostCallback !== null){
                                 console.log("LOST: all filled up");
                                 self.playerLostCallback();
                             }
                         }else{ //place the new block;
-                            world[world.length-2-rowIndex][startingCell+cellIndex] = newBlock[rowIndex][cellIndex];
+                            world[yLocation][xLocation] = newBlock[rowIndex][cellIndex];
                         }
                         
                     }                    
