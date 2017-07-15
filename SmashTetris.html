@@ -35,6 +35,7 @@
         window.TETRIS_STARTING_LEVEL = 0;                      //The initial level of the tetris engine
         window.TETRIS_SPEED_PER_LEVEL_MILLISECONDS = 100;      //How much the tetris tick speed decreases each level
         window.TETRIS_DROP_TICK_SPEED_MILLISECONDS = 10;       //The tetris tick speed when pieces are dropping
+        window.PLAYER_PUSHED_BUFFER = .001;
         window.WALL_TYPE_NONE = 0;
         window.WALL_TYPE_ARENA = 1;
         window.WALL_TYPE_PIECE_ACTIVE = 2;
@@ -188,7 +189,6 @@
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         ];
-        var currentTetrisBlock;
         var playerX;
         var playerY;
         var playerA;
@@ -229,7 +229,7 @@
 
             //-- PRIVATE MEMBER CONSTANTS --//   
 
-            var TICK_DELAY = 1000 / MAX_FRAMERATE;    
+            var TICK_DELAY = 1000 / MAX_FRAMERATE;
             
 
             //-- PRIVATE MEMBER VARIABLES --//
@@ -376,39 +376,102 @@
             }
 
             function pushPlayerDownIfNecessary() {                    
-                if(Math.floor(playerX) !== playerX) {
-                    if (world[Math.floor(playerY - .001)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE)
-                        playerY = Math.floor(playerY - .001) - .001;
+                if (Math.floor(playerX) !== playerX) {
+                    if (world[Math.floor(playerY - PLAYER_PUSHED_BUFFER)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE)
+                        playerY = Math.floor(playerY - PLAYER_PUSHED_BUFFER) - PLAYER_PUSHED_BUFFER;
                 }
                 else if (Math.floor(playerX) === playerX) {
-                    if (world[Math.floor(playerY - .001)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE || world[Math.floor(playerY - .001)][Math.floor(playerX) - 1] === WALL_TYPE_PIECE_ACTIVE)
-                        playerY = Math.floor(playerY - .001) - .001;
+                    if (world[Math.floor(playerY - PLAYER_PUSHED_BUFFER)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE || world[Math.floor(playerY - PLAYER_PUSHED_BUFFER)][Math.floor(playerX) - 1] === WALL_TYPE_PIECE_ACTIVE)
+                        playerY = Math.floor(playerY - PLAYER_PUSHED_BUFFER) - PLAYER_PUSHED_BUFFER;
                 }
                 handleSmashIfNecessary();
             }
 
             function pushPlayerLeftIfNecessary() {                    
-                if(Math.floor(playerY) !== playerY) {
-                    if (world[Math.floor(playerY)][Math.floor(playerX - .001)] === WALL_TYPE_PIECE_ACTIVE)
-                        playerX = Math.floor(playerX - .001) - .001;
+                if (Math.floor(playerY) !== playerY) {
+                    if (world[Math.floor(playerY)][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE)
+                        playerX = Math.floor(playerX - PLAYER_PUSHED_BUFFER) - PLAYER_PUSHED_BUFFER;
                 }
                 else if (Math.floor(playerY) === playerY) {
-                    if (world[Math.floor(playerY)][Math.floor(playerX - .001)] === WALL_TYPE_PIECE_ACTIVE || world[Math.floor(playerY) - 1][Math.floor(playerX - .001)] === WALL_TYPE_PIECE_ACTIVE)
-                        playerX = Math.floor(playerX - .001) - .001;
+                    if (world[Math.floor(playerY)][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE || world[Math.floor(playerY) - 1][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE)
+                        playerX = Math.floor(playerX - PLAYER_PUSHED_BUFFER) - PLAYER_PUSHED_BUFFER;
                 }
                 handleSmashIfNecessary();
             }
 
             function pushPlayerRightIfNecessary() {              
-                if(Math.floor(playerY) !== playerY) {
-                    if (world[Math.floor(playerY)][Math.floor(playerX - .001)] === WALL_TYPE_PIECE_ACTIVE)
-                        playerX = Math.ceil(playerX + .001) + .001;
+                if (Math.floor(playerY) !== playerY) {
+                    if (world[Math.floor(playerY)][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE)
+                        playerX = Math.ceil(playerX + PLAYER_PUSHED_BUFFER) + PLAYER_PUSHED_BUFFER;
                 }
                 else if (Math.floor(playerY) === playerY) {
-                    if (world[Math.floor(playerY)][Math.floor(playerX - .001)] === WALL_TYPE_PIECE_ACTIVE || world[Math.floor(playerY) - 1][Math.floor(playerX - .001)] === WALL_TYPE_PIECE_ACTIVE)
-                        playerX = Math.ceil(playerX + .001) + .001;
+                    if (world[Math.floor(playerY)][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE || world[Math.floor(playerY) - 1][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE)
+                        playerX = Math.ceil(playerX + PLAYER_PUSHED_BUFFER) + PLAYER_PUSHED_BUFFER;
                 }
                 handleSmashIfNecessary();
+            }
+
+            function pushPlayerToClosestAdjacentIfNecessary() {
+                if (world[Math.floor(playerY)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE) {
+                    var pushOptions = [];
+
+                    //Add side directions
+                    var pushOption = new PushOption(Math.floor(playerX) + 1 + PLAYER_PUSHED_BUFFER, playerY);
+                    if (pushOption.wallType === WALL_TYPE_NONE)
+                        pushOptions[pushOptions.length] = pushOption;
+                    pushOption = new PushOption(Math.floor(playerX) - 1 - PLAYER_PUSHED_BUFFER, playerY);
+                    if (pushOption.wallType === WALL_TYPE_NONE)
+                        pushOptions[pushOptions.length] = pushOption;
+                    pushOption = new PushOption(playerX, Math.floor(playerY) + 1 + PLAYER_PUSHED_BUFFER);
+                    if (pushOption.wallType === WALL_TYPE_NONE)
+                        pushOptions[pushOptions.length] = pushOption;
+                    pushOption = new PushOption(playerX, Math.floor(playerY) - 1 - PLAYER_PUSHED_BUFFER);
+                    if (pushOption.wallType === WALL_TYPE_NONE)
+                        pushOptions[pushOptions.length] = pushOption;
+
+                    //Add diagonal directions
+                    pushOption = new PushOption(Math.floor(playerX) + 1 + PLAYER_PUSHED_BUFFER, Math.floor(playerY) + 1 + PLAYER_PUSHED_BUFFER);
+                    if (pushOption.wallType === WALL_TYPE_NONE)
+                        pushOptions[pushOptions.length] = pushOption;
+                    pushOption = new PushOption(Math.floor(playerX) + 1 + PLAYER_PUSHED_BUFFER, Math.floor(playerY) - 1 - PLAYER_PUSHED_BUFFER);
+                    if (pushOption.wallType === WALL_TYPE_NONE)
+                        pushOptions[pushOptions.length] = pushOption;
+                    pushOption = new PushOption(Math.floor(playerX) - 1 - PLAYER_PUSHED_BUFFER, Math.floor(playerY) + 1 + PLAYER_PUSHED_BUFFER);
+                    if (pushOption.wallType === WALL_TYPE_NONE)
+                        pushOptions[pushOptions.length] = pushOption;
+                    pushOption = new PushOption(Math.floor(playerX) - 1 - PLAYER_PUSHED_BUFFER, Math.floor(playerY) - 1 - PLAYER_PUSHED_BUFFER);
+                    if (pushOption.wallType === WALL_TYPE_NONE)
+                        pushOptions[pushOptions.length] = pushOption;
+
+                    //Sort
+                    pushOptions.sort(function (a, b) { return a.getDistanceToPlayer() - b.getDistanceToPlayer(); } );
+
+                    //Move player
+                    if (pushOptions.length > 0) {
+                        playerX = pushOptions[0].x;
+                        playerY = pushOptions[0].y;
+                    }
+                }
+
+                function PushOption(x, y) {
+
+                    //Set coordinates
+                    this.x = x;                    
+                    this.y = y;
+
+                    //Ensure bounds
+                    if (this.x < 0)
+                        this.x = PLAYER_PUSHED_BUFFER;
+                    if (this.x >= world[0].length)
+                        this.x = world[0].length - PLAYER_PUSHED_BUFFER;
+                    if (this.y < 0)
+                        this.y = PLAYER_PUSHED_BUFFER;
+                    if (this.y >= world.length)
+                        this.y = world.length - PLAYER_PUSHED_BUFFER;
+
+                    this.wallType = world[Math.floor(this.y)][Math.floor(this.x)];
+                    this.getDistanceToPlayer = function () { return Math.sqrt(Math.pow(this.x - x, 2) + Math.pow(this.y - y, 2)); };
+                }
             }
 
             function handleSmashIfNecessary() {
@@ -535,10 +598,12 @@
                             case 191: //Forward slash
                                 if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE)
                                     tetrisEngine.rotate(-1);
+                                    pushPlayerToClosestAdjacentIfNecessary();
                                 break;
                             case 190: //Peroid
                                 if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE)
                                     tetrisEngine.rotate(1);
+                                    pushPlayerToClosestAdjacentIfNecessary();
                                 break;
                             case 32: //Space
                                 isDropping = true;
@@ -824,6 +889,7 @@
             var currentLevel = TETRIS_STARTING_LEVEL;
             var currentRotation = 0; //goes from 0 - 3, which says where the blank line is it rotates around.
             var score = 0;
+            var currentTetrisBlock;
 
             //-- PUBLIC METHODS --//
 
