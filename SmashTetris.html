@@ -77,7 +77,7 @@
                         initial: [[2,2],
                                   [2,2]],
                         rotations: []};
-        window.TETRIS_J = {name:"J", 
+        window.TETRIS_L = {name:"L", 
                         initial: [[2,2,2],
                                   [2,0,0]],
                         rotations: [
@@ -94,7 +94,7 @@
                              [0,2,0],
                              [2,2,0]]
                         ]};
-        window.TETRIS_L = {name:"L", 
+        window.TETRIS_J = {name:"J", 
                         initial: [[2,2,2],
                                   [0,0,2]],
                         rotations: [
@@ -198,7 +198,8 @@
         /////////////////////////
         // Initialization code //
         /////////////////////////
-        
+        var tetris;
+
         (function () {        
             overrideConfigConstants()
                 .then(function () {
@@ -211,10 +212,12 @@
                     //Start engine
                     var raycastingEngine = new RaycastingEngine();
                     var tetrisEngine = new TetrisEngine();
+                    tetris = tetrisEngine;
                     var playerEngine = new PlayerEngine(raycastingEngine, tetrisEngine);
                 });
         })();
 
+        
 
         ///////////////////
         // Player engine //
@@ -1028,6 +1031,10 @@
      
             };
 
+            self.down = function(){
+                movePieceDown();
+            }
+
             self.drop = function () {
 
                 //Set speed
@@ -1076,7 +1083,7 @@
                         scheduleTick(tickDelay);
                     }
                     else{
-                        movePieceDown();
+                        //movePieceDown();
                     }
                 }
             }
