@@ -527,25 +527,62 @@
 
             function attachMouseListeners(){
                 var oldX;
+                var mouseStoppedTimer;
+                var mouseButtonTimer;
+
+                /*
                 document.addEventListener('mousemove', function(e){
-                    if(oldX == null){
+                    if (isGameExecuting) {
+
+                        //I couldn't find a mousestop listener, so I'm setting up a timeout for mousestop stuff
+                        clearTimeout(mouseStoppedTimer);
+                        mouseStoppedTimer = setTimeout(function(){
+                            isTurningRight = false;
+                            isTurningLeft = false;
+                        }, 100); //if mouse isn't moving, stop movement.
+                        
+
+                        if(e.screenX > oldX){ //moving right
+                             isTurningRight = true;
+                        }
+                        if(e.screenX < oldX){ //moving left
+                            isTurningLeft = true;
+                        }
                         oldX = e.screenX;
                     }
+                }, false);
+                */
+
+                //this prevents the right click from popping up the context menu (cut, copy, etc);
+                //this doesn't work on all browsers, but makes it fun when it does.
+                document.oncontextmenu = function (e) {
+                    e.preventDefault();
+                };
+
+                document.addEventListener('mousedown', function(e){
                     console.log(e);
-                    if(e.screenX > oldX){
-                        //moving left
-                        console.log('left');
+                    if (isGameExecuting) {
+                        if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE){
+                            switch (e.button) {
+                                case 0: //left click
+                                    tetrisEngine.rotate(-1);
+                                    break;
+                                case 1: //middle button
+                                    isDropping = true;
+                                    break;
+                                case 2: //right
+                                    tetrisEngine.rotate(1);
+                                    break;
+                            }                            
+                            pushPlayerToClosestAdjacentIfNecessary();
+                        }
                     }
-                    if(e.screenX < oldX){
-                        //move right
-                        console.log('ri');
-                    }
-                    oldX = e.screenX;
                 }, false);
 
-                document.addEventListener('click', function(e){
-                    console.log('click');
+                document.addEventListener('mouseup', function(e){
+                    isDropping = false;
                 }, false);
+
             }
 
             function attachKeyboardListeners() {
