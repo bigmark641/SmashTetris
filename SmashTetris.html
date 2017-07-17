@@ -252,6 +252,7 @@
                 tetrisEngine.pieceMovedDownCallback = pushPlayerDownIfNecessary;
                 tetrisEngine.playerLostCallback = playerLostTetris;
                 attachKeyboardListeners();                
+                attachMouseListeners();
                 executeAndScheduleTick(new Date().valueOf());
             })();
 
@@ -523,6 +524,29 @@
             function isFacingUp () {
                 return playerA > Math.PI;
             };
+
+            function attachMouseListeners(){
+                var oldX;
+                document.addEventListener('mousemove', function(e){
+                    if(oldX == null){
+                        oldX = e.screenX;
+                    }
+                    console.log(e);
+                    if(e.screenX > oldX){
+                        //moving left
+                        console.log('left');
+                    }
+                    if(e.screenX < oldX){
+                        //move right
+                        console.log('ri');
+                    }
+                    oldX = e.screenX;
+                }, false);
+
+                document.addEventListener('click', function(e){
+                    console.log('click');
+                }, false);
+            }
 
             function attachKeyboardListeners() {
 
