@@ -585,16 +585,9 @@
                                 }
                                 break;
                             case 38: //Up arrow
-                                if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
-                                    if (isFacingRight()) {
-                                        tetrisEngine.moveRight();
-                                        pushPlayerRightIfNecessary();
-                                    }
-                                    else {
-                                        tetrisEngine.moveLeft();
-                                        pushPlayerLeftIfNecessary();
-                                    }
-                                }
+                                if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE)
+                                    tetrisEngine.rotate(-1);
+                                    pushPlayerToClosestAdjacentIfNecessary();
                                 break;
                             case 39: //Left arrow
                                 if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
@@ -609,29 +602,12 @@
                                 }
                                 break;
                             case 40: //Down arrow
-                                if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
-                                    if (isFacingRight()) {
-                                        tetrisEngine.moveLeft();
-                                        pushPlayerLeftIfNecessary();
-                                    }
-                                    else {
-                                        tetrisEngine.moveRight();
-                                        pushPlayerRightIfNecessary();
-                                    }
-                                }
+                                isDropping = true;
                                 break;
                             case 191: //Forward slash
-                                if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE)
-                                    tetrisEngine.rotate(-1);
-                                    pushPlayerToClosestAdjacentIfNecessary();
                                 break;
                             case 190: //Peroid
-                                if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE)
-                                    tetrisEngine.rotate(1);
-                                    pushPlayerToClosestAdjacentIfNecessary();
-                                break;
                             case 32: //Space
-                                isDropping = true;
                                 break;
                         }
                     }
@@ -659,8 +635,10 @@
                             case 68: //D
                                 isTurningRight = false;
                                 break;
-                            case 32: //Space
+                            case 40:
                                 isDropping = false;
+                                break;
+                            case 32: //Space
                                 break;
                         }
                     }
