@@ -565,13 +565,42 @@
                         if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE){
                             switch (e.button) {
                                 case 0: //left click
-                                    tetrisEngine.rotate(-1);
+                                    if(e.ctrlKey){ //ctrl key determines weapon type (move or rotate);
+                                        if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
+                                            if (isFacingUp()) {
+                                                tetrisEngine.moveRight();
+                                                pushPlayerRightIfNecessary();
+                                            }
+                                            else {
+                                                tetrisEngine.moveLeft();
+                                                pushPlayerLeftIfNecessary();
+                                            }
+                                        }
+                                    }
+                                    else{
+                                        tetrisEngine.rotate(-1);
+                                    }
+                                    
                                     break;
                                 case 1: //middle button
                                     isDropping = true;
                                     break;
                                 case 2: //right
-                                    tetrisEngine.rotate(1);
+                                    if(e.ctrlKey){ //ctrl key determines weapon type (move or rotate);
+                                        if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
+                                            if (isFacingUp()) {
+                                                tetrisEngine.moveLeft();
+                                                pushPlayerLeftIfNecessary();
+                                            }
+                                            else {
+                                                tetrisEngine.moveRight();
+                                                pushPlayerRightIfNecessary();
+                                            }
+                                        }
+                                    }
+                                    else{
+                                        tetrisEngine.rotate(1);
+                                    }
                                     break;
                             }                            
                             pushPlayerToClosestAdjacentIfNecessary();
@@ -991,16 +1020,135 @@
                 
                 console.log("Rotate Tetris piece.");
 
+                if(currentTetrisBlock.name == "O"){ //we don't spin O block
+                    return;
+                }
+
                 //http://tetris.wikia.com/wiki/SRS
                 //now using premade block rotation matrices
                 //we'll find the center, and then throw on new rotation (kept track by the var currentRotation) 
                 //and we'll remove the current peice, and put in the rotation
-                if(currentTetrisBlock.name == "O"){
-                    //we don't spin no 0s
+                var center = findCenter(); //the center which will be rotated around
+                if(center.length == 0){
+                    console.log("We don't have a center, so we won't rotate");
+                    //this is more error handling than anything, we SHOULD have a center, 
+                    //but I'm not certain all my matricies are well specified above (or in the original TETRIS_X objects)
                     return;
                 }
 
-                var center = []; //the center which will be rotated around
+                //determine clockwise / anti clockwise rotation and matrix
+                var rotationType = angle > 0 ? 1 : -1;
+                if(currentRotation+rotationType < 0){
+                    rotationType+= 4;
+                }
+                var newRotation = (currentRotation+rotationType)%4;
+                var rotatedMatrix = currentTetrisBlock.rotations[newRotation];
+
+
+                //create a new world without any active piece.
+                var newWorld = createNewWorld();
+                for(var r = 0; r<newWorld.length; r++){
+                    for(var c=0; c<newWorld[r].length; c++){
+                        if(newWorld[r][c]==WALL_TYPE_PIECE_ACTIVE){
+                            newWorld[r][c] = WALL_TYPE_NONE;
+                        }
+                    }
+                }
+
+                //put in the new piece.
+                //the 4x4 block (I) is so weird, I'm just going to hardcode the piece placement. -af
+                if(currentTetrisBlock.name == "I"){
+                    var offsets = [2,1,0,-1];
+                    for(var i = 0; i < offsets.length; i++){
+                        if(newRotation%2 == 1){ //vertical
+                            newWorld[center[0]+offsets[i]]  [center[1]] = WALL_TYPE_PIECE_ACTIVE;
+                        }
+                        else{ //horizontal
+                            newWorld[center[0]][center[1]+offsets[i]] = WALL_TYPE_PIECE_ACTIVE;
+                        }
+                    }
+                }
+                else{ //for all other pieces we can use a 3x3 grid.
+                    for(var rowIndex = 0; rowIndex < rotatedMatrix.length; rowIndex++){
+                        var offset = -1; //offset so in our 3x3 matrix [1,1] is now the center;
+                        for(var cellIndex = 0; cellIndex < rotatedMatrix[rowIndex].length; cellIndex++){
+                            if(rotatedMatrix[rowIndex][cellIndex] == WALL_TYPE_PIECE_ACTIVE){
+                                var y_coord = center[0] + rowIndex + offset; 
+                                var x_coord = center[1] + cellIndex + offset; 
+                                newWorld[y_coord][x_coord] = WALL_TYPE_PIECE_ACTIVE;
+                            }
+                        }
+                    }
+                }
+
+                if(isNewWorldValid(newWorld)){
+                    world = newWorld;
+                    currentRotation = newRotation; //if we actually rotate it, then incrememnt the rotate counter.
+                }
+     
+            };
+
+            self.drop = function () {
+
+                //Set speed
+                if (tickDelay > TETRIS_DROP_TICK_SPEED_MILLISECONDS)
+                    tickDelay = TETRIS_DROP_TICK_SPEED_MILLISECONDS;
+
+                //Immediately initiate tetris tick
+                scheduleTick(0);
+            };
+
+            self.cancelDrop = function () {
+
+                //Update the speed
+                var oldTickDelay = tickDelay;
+                updateSpeedIfNecessary();
+
+                //Reset the tick if speed was updated
+                if (tickDelay != oldTickDelay)
+                    scheduleTick(tickDelay);
+            };
+
+            self.pieceMovedDownCallback = null;
+
+            self.playerLostCallback = null;
+
+
+            //-- CONSTRUCTOR CODE --//
+
+            (function () {
+                addBlock();
+                scheduleTick(0);
+            })();
+
+
+            //-- PRIVATE METHODS --//
+
+            function executeAndScheduleTick(initiatingTickIndex) {
+                if (isGameExecuting && initiatingTickIndex === lastTickIndex) {
+                    scheduleTick(tickDelay);
+                    
+                    if(isMovingDownACollision()){
+                        setPiece();
+                        clearLines();
+                        updateSpeedIfNecessary();
+                        addBlock();
+                        scheduleTick(tickDelay);
+                    }
+                    else{
+                        movePieceDown();
+                    }
+                }
+            }
+
+            function scheduleTick(delay) {            
+                var currentTickIndex = lastTickIndex + 1;
+                lastTickIndex = currentTickIndex;            
+                setTimeout(function () { executeAndScheduleTick(currentTickIndex); }, delay);
+            }
+
+            function findCenter(){
+                var center = [];
                 if("TLJI".indexOf(currentTetrisBlock.name) >= 0)  //the following finds the center of the current piece in the world for TLJI pieces
                 for(var rowIndex = 0; rowIndex < world.length; rowIndex++){
                     for(var cellIndex = 0; cellIndex <= world[rowIndex].length; cellIndex++){
@@ -1069,8 +1217,6 @@
                     }
                 }
 
-                console.log(center);
-
                 if(currentTetrisBlock.name == "I") {
                      for(var y = 0; y < world.length; y++){
                         for(var x = 0; x <= world[y].length; x++){
@@ -1090,132 +1236,11 @@
                      }
                 }
 
-                if(center.length == 0){
-                    console.log("We don't have a center, so we won't rotate");
-                    //this is more error handling than anything, we SHOULD have a center, but I'm not certain all my matricies are 
-                    // well specified above (or in the original TETRIS_X objects)
-                    return;
-                }
-
-                //we now know the center, which is the cell with a block we're going to project our new rotated matrix onto
-                var rotationType = angle > 0 ? 1 : -1;
-                if(currentRotation+rotationType < 0){
-                    rotationType+= 4;
-                }
-                var newRotation = (currentRotation+rotationType)%4;
-
-                var rotatedMatrix = currentTetrisBlock.rotations[newRotation];
-
-                var newWorld = createNewWorld();
-                //clear the world, then build it with rotated piece in its new place
-                for(var r = 0; r<newWorld.length; r++){
-                    for(var c=0; c<newWorld[r].length; c++){
-                        if(newWorld[r][c]==WALL_TYPE_PIECE_ACTIVE){
-                            newWorld[r][c] = WALL_TYPE_NONE;
-                        }
-                    }
-                }
-                //put in the new piece.
-                if(currentTetrisBlock.name == "I"){
-                    //the 4x4 block is so weird, I'm just going to hardcode the piece placement. -af
-                    if(newRotation%2 == 1){ //vertical
-                        newWorld[center[0]+2][center[1]] = WALL_TYPE_PIECE_ACTIVE;
-                        newWorld[center[0]+1][center[1]] = WALL_TYPE_PIECE_ACTIVE;
-                        newWorld[center[0]][center[1]] = WALL_TYPE_PIECE_ACTIVE;
-                        newWorld[center[0]-1][center[1]] = WALL_TYPE_PIECE_ACTIVE;
-                    }
-                    else{ //horizontal
-                        newWorld[center[0]][center[1]-1] = WALL_TYPE_PIECE_ACTIVE;
-                        newWorld[center[0]][center[1]] = WALL_TYPE_PIECE_ACTIVE;
-                        newWorld[center[0]][center[1]+1] = WALL_TYPE_PIECE_ACTIVE;
-                        newWorld[center[0]][center[1]+2] = WALL_TYPE_PIECE_ACTIVE;
-                    }
-
-                }
-                else{ //for all other pieces we can use a 3x3 grid.
-                    for(var rowIndex = 0; rowIndex < rotatedMatrix.length; rowIndex++){
-                        var offset = -1; //offset so in our 3x3 matrix [1,1] is now the center;
-                        for(var cellIndex = 0; cellIndex < rotatedMatrix[rowIndex].length; cellIndex++){
-                            if(rotatedMatrix[rowIndex][cellIndex] == WALL_TYPE_PIECE_ACTIVE){
-                                
-                                var y_coord = center[0] + rowIndex + offset; 
-                                var x_coord = center[1] + cellIndex + offset; 
-                                newWorld[y_coord][x_coord] = WALL_TYPE_PIECE_ACTIVE;
-                            }
-                        }
-                    }
-                }
-
-                if(isNewWorldValid(newWorld)){
-                    world = newWorld;
-                    currentRotation = newRotation;
-                }
-                
-     
-            };
-
-            self.drop = function () {
-
-                //Set speed
-                if (tickDelay > TETRIS_DROP_TICK_SPEED_MILLISECONDS)
-                    tickDelay = TETRIS_DROP_TICK_SPEED_MILLISECONDS;
-
-                //Immediately initiate tetris tick
-                scheduleTick(0);
-            };
-
-            self.cancelDrop = function () {
-
-                //Update the speed
-                var oldTickDelay = tickDelay;
-                updateSpeedIfNecessary();
-
-                //Reset the tick if speed was updated
-                if (tickDelay != oldTickDelay)
-                    scheduleTick(tickDelay);
-            };
-
-            self.pieceMovedDownCallback = null;
-
-            self.playerLostCallback = null;
-
-
-            //-- CONSTRUCTOR CODE --//
-
-            (function () {
-                addBlock();
-                scheduleTick(0);
-            })();
-
-
-            //-- PRIVATE METHODS --//
-
-            function executeAndScheduleTick(initiatingTickIndex) {
-                if (isGameExecuting && initiatingTickIndex === lastTickIndex) {
-                    scheduleTick(tickDelay);
-                    
-                    if(isMovingDownACollision()){
-                        setPiece();
-                        clearLines();
-                        updateSpeedIfNecessary();
-                        addBlock();
-                        scheduleTick(tickDelay);
-                    }
-                    else{
-                        movePieceDown();
-                    }
-                }
-            }
-
-            function scheduleTick(delay) {            
-                var currentTickIndex = lastTickIndex + 1;
-                lastTickIndex = currentTickIndex;            
-                setTimeout(function () { executeAndScheduleTick(currentTickIndex); }, delay);
+                return center;
             }
 
             function addBlock(){
-                
-
+            
                 currentTetrisBlock = TETRIS_PIECES[Math.floor(Math.random()*(TETRIS_PIECES.length))]; //shuffle the pieces and grab one
                 var newBlock = currentTetrisBlock.initial; 
                 var length = newBlock[0].length;
