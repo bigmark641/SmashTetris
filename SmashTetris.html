@@ -7,6 +7,7 @@
         <p>Lines: <span id="numLines">0</span></p>
         <p>Level: <span id="level">0</span></p>
         <p>Score: <span id="score">0</span></p>
+        <p>Next Piece: <span id="nextPiece"></span></p>
     </div>
     <script>
         "use strict";
@@ -964,6 +965,7 @@
             var currentRotation = 0; //goes from 0 - 3, which says where the blank line is it rotates around.
             var score = 0;
             var currentTetrisBlock;
+            var nextTetrisBlock;
 
             //-- PUBLIC METHODS --//
 
@@ -1138,6 +1140,7 @@
             //-- CONSTRUCTOR CODE --//
 
             (function () {
+                nextTetrisBlock = TETRIS_PIECES[Math.floor(Math.random()*(TETRIS_PIECES.length))];
                 addBlock();
                 scheduleTick(0);
             })();
@@ -1167,6 +1170,7 @@
                 document.getElementById("numLines").innerHTML = numberOfLines;
                 document.getElementById("level").innerHTML = currentLevel;
                 document.getElementById("score").innerHTML = score;
+                document.getElementById("nextPiece").innerHTML = nextTetrisBlock.name;
             }
 
             function scheduleTick(delay) {            
@@ -1268,8 +1272,8 @@
             }
 
             function addBlock(){
-            
-                currentTetrisBlock = TETRIS_PIECES[Math.floor(Math.random()*(TETRIS_PIECES.length))]; //shuffle the pieces and grab one
+                currentTetrisBlock = nextTetrisBlock;
+                nextTetrisBlock = TETRIS_PIECES[Math.floor(Math.random()*(TETRIS_PIECES.length))];                
                 var newBlock = currentTetrisBlock.initial; 
                 var length = newBlock[0].length;
                 var startingCell = (10/2)-Math.floor(length/2);
