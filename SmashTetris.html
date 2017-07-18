@@ -1039,7 +1039,7 @@
                     }
                 }
                 else{ //weird case where the I block has move 1 down, but still doesn't have room to rotate
-                    if(world[19].indexOf(2) >= 0 && currentTetrisBlock.name == "I"){
+                    if(world[19].indexOf(2) >= 0 && currentTetrisBlock.name == "I" && currentRotation == 0){
                         pushFromTopBuffer = 1;
                     }
                 }
