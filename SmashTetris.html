@@ -1015,13 +1015,23 @@
             };
 
             self.rotate = function (angle) {
-                angle = angle || 1;
-                angle = angle > 0 ? 1 : -1;
-                
                 console.log("Rotate Tetris piece.");
 
                 if(currentTetrisBlock.name == "O"){ //we don't spin O block
                     return;
+                }
+                
+                var pushFromTopBuffer = 0; //how many places to push it if the block is at the top.
+                var isPieceAtTop = false;
+
+                if(world[20].indexOf(2) >= 0){
+                    isPieceAtTop = true;
+                    if(currentTetrisBlock.name == "I"){
+                        pushFromTopBuffer = 2;
+                    }
+                    else{
+                        pushFromTopBuffer = 1;
+                    }
                 }
 
                 //http://tetris.wikia.com/wiki/SRS
@@ -1061,10 +1071,10 @@
                     var offsets = [2,1,0,-1];
                     for(var i = 0; i < offsets.length; i++){
                         if(newRotation%2 == 1){ //vertical
-                            newWorld[center[0]+offsets[i]]  [center[1]] = WALL_TYPE_PIECE_ACTIVE;
+                            newWorld[center[0]+offsets[i] - pushFromTopBuffer]  [center[1]] = WALL_TYPE_PIECE_ACTIVE;
                         }
                         else{ //horizontal
-                            newWorld[center[0]][center[1]+offsets[i]] = WALL_TYPE_PIECE_ACTIVE;
+                            newWorld[center[0] - pushFromTopBuffer][center[1]+offsets[i]] = WALL_TYPE_PIECE_ACTIVE;
                         }
                     }
                 }
@@ -1075,7 +1085,7 @@
                             if(rotatedMatrix[rowIndex][cellIndex] == WALL_TYPE_PIECE_ACTIVE){
                                 var y_coord = center[0] + rowIndex + offset; 
                                 var x_coord = center[1] + cellIndex + offset; 
-                                newWorld[y_coord][x_coord] = WALL_TYPE_PIECE_ACTIVE;
+                                newWorld[y_coord - pushFromTopBuffer][x_coord] = WALL_TYPE_PIECE_ACTIVE;
                             }
                         }
                     }
