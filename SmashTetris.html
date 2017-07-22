@@ -3,7 +3,7 @@
 </head>
 <body style="margin: 0">
     <canvas id="canvas" style="border: 1px solid black;"></canvas>
-    <div id="stats">
+    <div id="stats" >
         <p>Lines: <span id="numLines">0</span></p>
         <p>Level: <span id="level">0</span></p>
         <p>Score: <span id="score">0</span></p>
@@ -11,7 +11,7 @@
     </div>
     <script>
         "use strict";
-
+        
 
         //////////////////////
         // Config constants //
@@ -47,6 +47,7 @@
         window.WALL_TYPE_PIECE_ACTIVE = 2;
         window.WALL_TYPE_PIECE_INACTIVE = 3;
         window.CONFIG_VALUE_WAIT_TIME_MILLISECONDS = 1000;
+        window.MOUSE_SENSITIVITY = .005;
         window.TETRIS_S = {name:"S", 
                         initial: [[0,2,2],
                                   [2,2,0]],
@@ -295,11 +296,7 @@
                     playerA += PLAYER_TURNING_SPEED * elapsedTime;
                 if (isTurningRight)
                     playerA -= PLAYER_TURNING_SPEED * elapsedTime;
-
-                //Normalize angle
-                if (playerA < 0)
-                    playerA += 2 * Math.PI;
-                playerA %= 2 * Math.PI;
+                normalizePlayerA();
 
                 //Decelerate
                 var ratioToDecelerate = 1 - PLAYER_ACCELERATION / Math.sqrt(velocityX * velocityX + velocityY * velocityY);
@@ -531,33 +528,30 @@
                 return playerA > Math.PI;
             };
 
-            function attachMouseListeners(){
-                var oldX;
-                var mouseStoppedTimer;
-                var mouseButtonTimer;
+            function normalizePlayerA () {
+                if (playerA < 0)
+                    playerA += 2 * Math.PI;
+                playerA %= 2 * Math.PI;
+            }
 
-                /*
-                document.addEventListener('mousemove', function(e){
+            function attachMouseListeners(){
+                var oldScreenX = null;
+                
+                document.onmousemove = function (e) {
                     if (isGameExecuting) {
 
-                        //I couldn't find a mousestop listener, so I'm setting up a timeout for mousestop stuff
-                        clearTimeout(mouseStoppedTimer);
-                        mouseStoppedTimer = setTimeout(function(){
-                            isTurningRight = false;
-                            isTurningLeft = false;
-                        }, 100); //if mouse isn't moving, stop movement.
-                        
+                        //Ensure oldScreenX
+                        if (oldScreenX === null)
+                            oldScreenX = e.screenX; 
 
-                        if(e.screenX > oldX){ //moving right
-                             isTurningRight = true;
-                        }
-                        if(e.screenX < oldX){ //moving left
-                            isTurningLeft = true;
-                        }
-                        oldX = e.screenX;
+                        //Update angle                        
+                        playerA += MOUSE_SENSITIVITY * (oldScreenX - e.screenX);
+                        normalizePlayerA();
+                        
+                        //Save screen x
+                        oldScreenX = e.screenX;
                     }
-                }, false);
-                */
+                };                
 
                 //this prevents the right click from popping up the context menu (cut, copy, etc);
                 //this doesn't work on all browsers, but makes it fun when it does.
@@ -565,7 +559,7 @@
                     e.preventDefault();
                 };
 
-                document.addEventListener('mousedown', function(e){
+                document.onmousedown = function (e) {
                     console.log(e);
                     if (isGameExecuting) {
                         if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE){
@@ -584,7 +578,7 @@
                                         }
                                     }
                                     else{
-                                        tetrisEngine.rotate(-1);
+                                        tetrisEngine.rotate(1);
                                     }
                                     
                                     break;
@@ -605,18 +599,18 @@
                                         }
                                     }
                                     else{
-                                        tetrisEngine.rotate(1);
+                                        tetrisEngine.rotate(-1);
                                     }
                                     break;
                             }                            
                             pushPlayerToClosestAdjacentIfNecessary();
                         }
                     }
-                }, false);
+                };
 
-                document.addEventListener('mouseup', function(e){
+                document.onmouseup = function (e) {
                     isDropping = false;
-                }, false);
+                };
 
             }
 
