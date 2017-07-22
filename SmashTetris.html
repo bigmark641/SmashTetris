@@ -29,7 +29,7 @@
         window.WALL_COLORS_FACING = ["#999999", "#DD0000", '#000066']; //Hex colors when the user is pointed at the wall
         window.WALL_SHADING_PERCENT = -15;     //Color difference of perpendicular walls
         window.WALL_DISTANCE_SHADE = -.85;     //How much darker far away objects should appear
-        window.PLAYER_TURNING_SPEED = .002;    //How fast the player turns
+        window.KEYBOARD_TURNING_SPEED = .002;    //How fast the player turns with the keyboard
         window.MOUSE_SENSITIVITY = .001;       //How fast the mouse turns
         window.PLAYER_WALKING_SPEED = .01;     //How fast the player walks
         window.PLAYER_ACCELERATION = .0015;    //How fast the player accelerates
@@ -293,9 +293,9 @@
 
                 //Turning
                 if (isTurningLeft)
-                    playerA += PLAYER_TURNING_SPEED * elapsedTime;
+                    playerA += KEYBOARD_TURNING_SPEED * elapsedTime;
                 if (isTurningRight)
-                    playerA -= PLAYER_TURNING_SPEED * elapsedTime;
+                    playerA -= KEYBOARD_TURNING_SPEED * elapsedTime;
                 normalizePlayerA();
 
                 //Decelerate
