@@ -30,7 +30,7 @@
         window.WALL_SHADING_PERCENT = -15;     //Color difference of perpendicular walls
         window.WALL_DISTANCE_SHADE = -.85;     //How much darker far away objects should appear
         window.PLAYER_TURNING_SPEED = .002;    //How fast the player turns
-        window.MOUSE_SENSITIVITY = .005;       //How fast the mouse turns
+        window.MOUSE_SENSITIVITY = .001;       //How fast the mouse turns
         window.PLAYER_WALKING_SPEED = .01;     //How fast the player walks
         window.PLAYER_ACCELERATION = .0015;    //How fast the player accelerates
         window.PLAYER_STARTING_X = 8;          //Player's starting X location
@@ -258,7 +258,7 @@
             (function () {
                 tetrisEngine.pieceMovedDownCallback = pushPlayerDownIfNecessary;
                 tetrisEngine.playerLostCallback = playerLostTetris;
-                attachKeyboardListeners();                
+                attachKeyboardListeners(false);                
                 attachMouseListeners();
                 executeAndScheduleTick(new Date().valueOf());
             })();
@@ -535,86 +535,107 @@
             }
 
             function attachMouseListeners(){
-                var oldScreenX = null;
+                var canvasElement = document.getElementById("canvas");
+                canvasElement.onclick = function () {
                 
-                document.onmousemove = function (e) {
-                    if (isGameExecuting) {
+                    //Lock pointer and enter mouse mode
+                    if ('pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document) {
+                        canvasElement.requestPointerLock = canvasElement.requestPointerLock ||
+                            canvasElement.mozRequestPointerLock ||
+                            canvasElement.webkitRequestPointerLock;
+                        canvasElement.requestPointerLock();
 
-                        //Ensure oldScreenX
-                        if (oldScreenX === null)
-                            oldScreenX = e.screenX; 
+                        //Rebind keyboard controls to mouse mode
+                        attachKeyboardListeners(true);
 
-                        //Update angle                        
-                        playerA += MOUSE_SENSITIVITY * (oldScreenX - e.screenX);
-                        normalizePlayerA();
-                        
-                        //Save screen x
-                        oldScreenX = e.screenX;
-                    }
-                };                
+                        //Mouse look
+                        document.onmousemove = function (e) {
+                            if (isGameExecuting) {                    
+                                playerA += MOUSE_SENSITIVITY * -e.movementX;
+                                normalizePlayerA();
+                            }
+                        };  
 
-                //this prevents the right click from popping up the context menu (cut, copy, etc);
-                //this doesn't work on all browsers, but makes it fun when it does.
-                document.oncontextmenu = function (e) {
-                    e.preventDefault();
-                };
+                        //Mouse click
+                        document.onmousedown = function (e) {
+                            console.log(e);
+                            if (isGameExecuting) {
+                                if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE){
+                                    switch (e.button) {
+                                        case 0: //left click
+                                            if(e.ctrlKey){ //ctrl key determines weapon type (move or rotate);
+                                                tetrisEngine.rotate(1);
+                                                pushPlayerToClosestAdjacentIfNecessary();
+                                            }
+                                            else{
+                                                if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
+                                                    if (isFacingUp()) {
+                                                        tetrisEngine.moveRight();
+                                                        pushPlayerRightIfNecessary();
+                                                    }
+                                                    else {
+                                                        tetrisEngine.moveLeft();
+                                                        pushPlayerLeftIfNecessary();
+                                                    }
+                                                }
+                                            }
+                                            
+                                            break;
+                                        case 1: //middle button
+                                            isDropping = true;
+                                            break;
+                                        case 2: //right
+                                            if(e.ctrlKey){ //ctrl key determines weapon type (move or rotate);
+                                                tetrisEngine.rotate(-1);
+                                                pushPlayerToClosestAdjacentIfNecessary();
+                                            }
+                                            else{
+                                                if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
+                                                    if (isFacingUp()) {
+                                                        tetrisEngine.moveLeft();
+                                                        pushPlayerLeftIfNecessary();
+                                                    }
+                                                    else {
+                                                        tetrisEngine.moveRight();
+                                                        pushPlayerRightIfNecessary();
+                                                    }
+                                                }
+                                            }
+                                            break;
+                                    }                            
+                                }
+                            }
+                        };
 
-                document.onmousedown = function (e) {
-                    console.log(e);
-                    if (isGameExecuting) {
-                        if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE){
-                            switch (e.button) {
-                                case 0: //left click
-                                    if(e.ctrlKey){ //ctrl key determines weapon type (move or rotate);
-                                        if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
-                                            if (isFacingUp()) {
-                                                tetrisEngine.moveRight();
-                                                pushPlayerRightIfNecessary();
-                                            }
-                                            else {
-                                                tetrisEngine.moveLeft();
-                                                pushPlayerLeftIfNecessary();
-                                            }
-                                        }
-                                    }
-                                    else{
-                                        tetrisEngine.rotate(1);
-                                    }
-                                    
-                                    break;
-                                case 1: //middle button
-                                    isDropping = true;
-                                    break;
-                                case 2: //right
-                                    if(e.ctrlKey){ //ctrl key determines weapon type (move or rotate);
-                                        if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
-                                            if (isFacingUp()) {
-                                                tetrisEngine.moveLeft();
-                                                pushPlayerLeftIfNecessary();
-                                            }
-                                            else {
-                                                tetrisEngine.moveRight();
-                                                pushPlayerRightIfNecessary();
-                                            }
-                                        }
-                                    }
-                                    else{
-                                        tetrisEngine.rotate(-1);
-                                    }
-                                    break;
-                            }                            
-                            pushPlayerToClosestAdjacentIfNecessary();
+                        //Mouse unclick
+                        document.onmouseup = function (e) {
+                            isDropping = false;
+                        };
+
+                        //Disable browser context menu
+                        document.oncontextmenu = function (e) {
+                            e.preventDefault();
+                        };
+
+                        //Allow unlocking out of mouse mode
+                        document.onpointerlockchange = function (e) {
+                            if (document.pointerLockElement !== canvasElement
+                                    && document.mozPointerLockElement !== canvasElement
+                                    && document.webkitPointerLockElement !== canvasElement) {
+                                attachKeyboardListeners(false);
+                                document.onmousemove = null;
+                                document.onmousedown = null;
+                                document.onmouseup = null;
+                                document.oncontextmenu = null;
+                            }
                         }
+                        document.onmozpointerlockchange = document.onpointerlockchange;
+                        document.onwebkitpointerlockchange = document.onpointerlockchange;
                     }
-                };
-
-                document.onmouseup = function (e) {
-                    isDropping = false;
-                };
-
+                }
             }
 
-            function attachKeyboardListeners() {
+            function attachKeyboardListeners(isMouseMode) {
 
                 //Key down
                 document.onkeydown = function (keyboardEvent) {
@@ -623,91 +644,115 @@
                             case 87: //W
                                 isMovingForward = true;
                                 break;
-                            case 65: //A
-                                isTurningLeft = true;
-                                break;
-                            case 81: //Q
-                                isSidesteppingLeft = true;
-                                break;
-                            case 69: //E
-                                isSidesteppingRight = true;
-                                break;
                             case 83: //S
                                 isMovingBackward = true;
                                 break;
-                            case 68: //D
-                                isTurningRight = true;
+                            case 65: //A
+                                if (isMouseMode)
+                                    isSidesteppingLeft = true;
+                                else
+                                    isTurningLeft = true;
+                                break;
+                            case 68: //D                                
+                                if (isMouseMode)
+                                    isSidesteppingRight = true;
+                                else
+                                    isTurningRight = true;
+                                break;
+                            case 81: //Q
+                                if (!isMouseMode)
+                                    isSidesteppingLeft = true;
+                                break;
+                            case 69: //E
+                                if (!isMouseMode)
+                                    isSidesteppingRight = true;
                                 break;
                             case 37: //Right arrow
-                                if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
-                                    if (isFacingUp()) {
-                                        tetrisEngine.moveRight();
-                                        pushPlayerRightIfNecessary();
+                                    if (!isMouseMode) {
+                                        if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
+                                            if (isFacingUp()) {
+                                                tetrisEngine.moveRight();
+                                                pushPlayerRightIfNecessary();
+                                            }
+                                            else {
+                                                tetrisEngine.moveLeft();
+                                                pushPlayerLeftIfNecessary();
+                                            }
+                                        }
                                     }
-                                    else {
-                                        tetrisEngine.moveLeft();
-                                        pushPlayerLeftIfNecessary();
+                                break;
+                            case 38: //Up arrow
+                                if (!isMouseMode) {
+                                    if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
+                                        tetrisEngine.rotate(-1);
+                                        pushPlayerToClosestAdjacentIfNecessary();
                                     }
                                 }
                                 break;
-                            case 38: //Up arrow
-                                if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE)
-                                    tetrisEngine.rotate(-1);
-                                    pushPlayerToClosestAdjacentIfNecessary();
-                                break;
                             case 39: //Left arrow
-                                if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
-                                    if (isFacingUp()) {
-                                        tetrisEngine.moveLeft();
-                                        pushPlayerLeftIfNecessary();
-                                    }
-                                    else {
-                                        tetrisEngine.moveRight();
-                                        pushPlayerRightIfNecessary();
+                                if (!isMouseMode) {
+                                    if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
+                                        if (isFacingUp()) {
+                                            tetrisEngine.moveLeft();
+                                            pushPlayerLeftIfNecessary();
+                                        }
+                                        else {
+                                            tetrisEngine.moveRight();
+                                            pushPlayerRightIfNecessary();
+                                        }
                                     }
                                 }
                                 break;
                             case 40: //Down arrow
-                                isDropping = true;
+                                if (!isMouseMode)
+                                    isDropping = true;
                                 break;
-                            case 191: //Forward slash
-                                break;
-                            case 190: //Peroid
                             case 32: //Space
-                                break;
+                                if (isMouseMode)
+                                    isDropping = true;
                         }
                     }
                 }
 
                 //Key up
-                document.onkeyup = function (keyboardEvent) {
+                document.onkeyup = function (keyboardEvent) {                    
                     if (isGameExecuting) {
                         switch (keyboardEvent.keyCode) {
                             case 87: //W
                                 isMovingForward = false;
                                 break;
-                            case 65: //A
-                                isTurningLeft = false;
-                                break;
-                            case 81: //Q
-                                isSidesteppingLeft = false;
-                                break;
-                            case 69: //E
-                                isSidesteppingRight = false;
-                                break;
                             case 83: //S
                                 isMovingBackward = false;
                                 break;
-                            case 68: //D
-                                isTurningRight = false;
+                            case 65: //A
+                                if (isMouseMode)
+                                    isSidesteppingLeft = false;
+                                else
+                                    isTurningLeft = false;
                                 break;
-                            case 40:
-                                isDropping = false;
+                            case 68: //D
+                                if (isMouseMode)
+                                    isSidesteppingRight = false;
+                                else
+                                    isTurningRight = false;
+                                break;
+                            case 81: //Q
+                                if (!isMouseMode)
+                                    isSidesteppingLeft = false;
+                                break;
+                            case 69: //E
+                                if (!isMouseMode)
+                                    isSidesteppingRight = false;
+                                break;
+                            case 40: //Down arrow
+                                if (!isMouseMode)
+                                    isDropping = false;
                                 break;
                             case 32: //Space
-                                break;
+                                if (isMouseMode)
+                                    isDropping = false;
                         }
-                    }
+                    }                    
                 }
             }
         }
