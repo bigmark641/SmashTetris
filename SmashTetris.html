@@ -25,8 +25,8 @@
         window.WALL_HEIGHT = 1;                //How tall each wall should be (1 is a cube)
         window.SKY_COLOR = "#99d9ea";          //Hex color of the sky
         window.GROUND_COLOR = "#22b14c";       //Hex color of the ground
-        window.WALL_COLORS = ["#999999", "#990000", '#00002d'];        //Hex colors of the different wall types
-        window.WALL_COLORS_FACING = ["#999999", "#DD0000", '#00002d']; //Hex colors when the user is pointed at the wall
+        window.WALL_COLORS = ["#999999", "#990000", '#000066'];        //Hex colors of the different wall types
+        window.WALL_COLORS_FACING = ["#999999", "#DD0000", '#000066']; //Hex colors when the user is pointed at the wall
         window.WALL_SHADING_PERCENT = -15;     //Color difference of perpendicular walls
         window.WALL_DISTANCE_SHADE = -.85;     //How much darker far away objects should appear
         window.PLAYER_TURNING_SPEED = .002;    //How fast the player turns
@@ -569,12 +569,12 @@
                                             }
                                             else{
                                                 if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
-                                                    if (isFacingUp()) {
-                                                        tetrisEngine.moveRight();
+                                                    if (isFacingRight()) {
+                                                        tetrisEngine.moveLeft();
                                                         pushPlayerRightIfNecessary();
                                                     }
                                                     else {
-                                                        tetrisEngine.moveLeft();
+                                                        tetrisEngine.moveRight();
                                                         pushPlayerLeftIfNecessary();
                                                     }
                                                 }
@@ -591,13 +591,13 @@
                                             }
                                             else{
                                                 if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
-                                                    if (isFacingUp()) {
-                                                        tetrisEngine.moveLeft();
-                                                        pushPlayerLeftIfNecessary();
-                                                    }
-                                                    else {
+                                                    if (isFacingRight()) {
                                                         tetrisEngine.moveRight();
                                                         pushPlayerRightIfNecessary();
+                                                    }
+                                                    else {
+                                                        tetrisEngine.moveLeft();
+                                                        pushPlayerLeftIfNecessary();
                                                     }
                                                 }
                                             }
