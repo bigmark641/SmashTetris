@@ -3,12 +3,6 @@
 </head>
 <body style="margin: 0">
     <canvas id="canvas" style="border: 1px solid black;"></canvas>
-    <div id="stats" >
-        <p>Lines: <span id="numLines">0</span></p>
-        <p>Level: <span id="level">0</span></p>
-        <p>Score: <span id="score">0</span></p>
-        <p>Next Piece: <span id="nextPiece"></span></p>
-    </div>
     <script>
         "use strict";
         
@@ -200,7 +194,7 @@
         var playerX;
         var playerY;
         var playerA;
-        var isGameExecuting = false;
+        var isGameInProgress = false;
 
 
         /////////////////////////
@@ -258,6 +252,7 @@
             (function () {
                 tetrisEngine.pieceMovedDownCallback = pushPlayerDownIfNecessary;
                 tetrisEngine.playerLostCallback = playerLostTetris;
+                raycastingEngine.worldDrawnCallback = drawPlayerOverlay;
                 attachKeyboardListeners(false);                
                 attachMouseListeners();
                 executeAndScheduleTick(new Date().valueOf());
@@ -267,7 +262,7 @@
             //-- PRIVATE FUNCTIONALITY --//
             
             function executeAndScheduleTick(lastTickTime) {
-                if (isGameExecuting) {
+                if (isGameInProgress) {
 
                     //Schedule next tick
                     var currentTickTime = new Date().valueOf();
@@ -509,14 +504,47 @@
 
                 //Handle smash
                 if (isSmashed) {
-                    console.log("Player was smashed!");
-                    isGameExecuting = false;
+                    playerLostTetris();
                 }
             }
 
-            function playerLostTetris() {                
-                console.log("Player lost Tetris!");
-                isGameExecuting = false;
+            function playerLostTetris() {
+                isGameInProgress = false;            
+            }
+
+            function drawPlayerOverlay (canvasContext) {
+
+                //Draw crosshairs
+                raycastingEngine.drawLine(canvasContext, VIEWPORT_WIDTH_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2 - VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_WIDTH_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2 + VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_CROSSHAIR_COLOR);
+                raycastingEngine.drawLine(canvasContext, VIEWPORT_WIDTH_PIXELS / 2 - VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2, VIEWPORT_WIDTH_PIXELS / 2 + VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2, VIEWPORT_CROSSHAIR_COLOR);
+                
+                //Draw next piece
+                var nextPiece = tetrisEngine.getNextPiece();
+                for (var row = 0; row < nextPiece.length; row++) {
+                    for (var col = 0; col < nextPiece[0].length; col++) {
+                        if (nextPiece[row][col] !== 0) {
+                            var color = WALL_COLORS[nextPiece[row][col] - 1];
+                            var heightOffset = nextPiece.length === 1 ? 20 : 10;
+                            canvasContext.fillStyle = color;
+                            canvasContext.fillRect(VIEWPORT_WIDTH_PIXELS + col * 20 - 100, heightOffset + row * 20, 20, 20);
+                            canvasContext.stroke();
+                        }
+                    }
+                }
+                canvasContext.fillStyle = "black";
+                canvasContext.font = "bold 32px Arial";
+                canvasContext.fillText("Next: ", VIEWPORT_WIDTH_PIXELS - 200, 40);
+                
+                //Draw lines and score
+                canvasContext.fillText("Lines: " + tetrisEngine.getNumberOfLines(), (VIEWPORT_WIDTH_PIXELS / 2) - 70, 40);
+                canvasContext.fillText("Score: " + tetrisEngine.getScore(), 50, 40);
+
+                //Draw game over screen
+                if (!isGameInProgress) {
+                    canvasContext.fillStyle = "white";
+                    canvasContext.font = "bold 64px Arial";
+                    canvasContext.fillText("Game over!", (VIEWPORT_WIDTH_PIXELS / 2) - 150, (VIEWPORT_HEIGHT_PIXELS / 2) + 8);
+                }
             }
 
             function isFacingRight () {
@@ -550,7 +578,7 @@
 
                         //Mouse look
                         document.onmousemove = function (e) {
-                            if (isGameExecuting) {                    
+                            if (isGameInProgress) {                    
                                 playerA += MOUSE_SENSITIVITY * -e.movementX;
                                 normalizePlayerA();
                             }
@@ -559,7 +587,7 @@
                         //Mouse click
                         document.onmousedown = function (e) {
                             console.log(e);
-                            if (isGameExecuting) {
+                            if (isGameInProgress) {
                                 if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE){
                                     switch (e.button) {
                                         case 0: //left click
@@ -639,7 +667,7 @@
 
                 //Key down
                 document.onkeydown = function (keyboardEvent) {
-                    if (isGameExecuting) {
+                    if (isGameInProgress) {
                         switch (keyboardEvent.keyCode) {
                             case 87: //W
                                 isMovingForward = true;
@@ -716,7 +744,7 @@
 
                 //Key up
                 document.onkeyup = function (keyboardEvent) {                    
-                    if (isGameExecuting) {
+                    if (isGameInProgress) {
                         switch (keyboardEvent.keyCode) {
                             case 87: //W
                                 isMovingForward = false;
@@ -846,6 +874,16 @@
                     horizontalWall: onHorizontalWalls
                 };
             };
+            
+            self.drawLine = function (canvasContext, x1, y1, x2, y2, color) {
+                canvasContext.beginPath();
+                canvasContext.strokeStyle = color;
+                canvasContext.moveTo(x1, y1);
+                canvasContext.lineTo(x2, y2);
+                canvasContext.stroke();
+            }
+
+            self.worldDrawnCallback = null;
 
 
             //-- CONSTRUCTOR CODE --//
@@ -909,7 +947,7 @@
 
                     //Draw column
                     drawColumn(canvasContext, col, wallHeightOnViewport, firstHitWallType, isFirstHitHorizontalWall, distFromViewport * WALL_DISTANCE_SHADE, facingWallType);
-                }
+                }                    
 
                 //Draw overhead map
                 for (var row = 0; row < world.length; row++) {
@@ -926,15 +964,14 @@
                 var leftRayA = playerA + Math.atan(.5 / VIEWPORT_DIST);
                 var leftRayX = playerX + 3 * Math.cos(leftRayA);
                 var leftRayY = playerY + 3 * Math.sin(leftRayA);
-                drawLine(canvasContext, playerX * 10, VIEWPORT_HEIGHT_PIXELS - playerY * 10, leftRayX * 10, VIEWPORT_HEIGHT_PIXELS - leftRayY * 10, "#BBBBBB");
+                self.drawLine(canvasContext, playerX * 10, VIEWPORT_HEIGHT_PIXELS - playerY * 10, leftRayX * 10, VIEWPORT_HEIGHT_PIXELS - leftRayY * 10, "#BBBBBB");
                 var rightRayA = playerA + Math.atan(-.5 / VIEWPORT_DIST);
                 var rightRayX = playerX + 3 * Math.cos(rightRayA);
                 var rightRayY = playerY + 3 * Math.sin(rightRayA);
-                drawLine(canvasContext, playerX * 10, VIEWPORT_HEIGHT_PIXELS - playerY * 10, rightRayX * 10, VIEWPORT_HEIGHT_PIXELS - rightRayY * 10, "#BBBBBB");
-
-                //Draw crosshairs
-                drawLine(canvasContext, VIEWPORT_WIDTH_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2 - VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_WIDTH_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2 + VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_CROSSHAIR_COLOR);
-                drawLine(canvasContext, VIEWPORT_WIDTH_PIXELS / 2 - VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2, VIEWPORT_WIDTH_PIXELS / 2 + VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2, VIEWPORT_CROSSHAIR_COLOR);
+                self.drawLine(canvasContext, playerX * 10, VIEWPORT_HEIGHT_PIXELS - playerY * 10, rightRayX * 10, VIEWPORT_HEIGHT_PIXELS - rightRayY * 10, "#BBBBBB");
+             
+                if (self.worldDrawnCallback !== null)
+                    self.worldDrawnCallback(canvasContext);
             }
 
             function getFirstHit(angle) {
@@ -958,17 +995,9 @@
                     wallColor = isHorizontalWall ? WALL_COLORS[wallType - 1] : VERTICAL_WALL_COLORS[wallType - 1];
 
                 //Draw column
-                drawLine(canvasContext, col, 0, col, wallTop, SKY_COLOR);
-                drawLine(canvasContext, col, wallTop, col, wallBottom, shadeColor(wallColor, wallShade));
-                drawLine(canvasContext, col, wallBottom, col, VIEWPORT_HEIGHT_PIXELS, GROUND_COLOR);
-            }
-
-            function drawLine(canvasContext, x1, y1, x2, y2, color) {
-                canvasContext.beginPath();
-                canvasContext.strokeStyle = color;
-                canvasContext.moveTo(x1, y1);
-                canvasContext.lineTo(x2, y2);
-                canvasContext.stroke();
+                self.drawLine(canvasContext, col, 0, col, wallTop, SKY_COLOR);
+                self.drawLine(canvasContext, col, wallTop, col, wallBottom, shadeColor(wallColor, wallShade));
+                self.drawLine(canvasContext, col, wallBottom, col, VIEWPORT_HEIGHT_PIXELS, GROUND_COLOR);
             }
             
             function shadeColor(color, percent) {
@@ -1018,6 +1047,10 @@
 
             self.getLevel = function () {
                 return currentLevel;
+            }
+
+            self.getNextPiece = function () {
+                return nextTetrisBlock.initial;
             }
 
             self.moveLeft = function () {
@@ -1188,7 +1221,7 @@
             //-- PRIVATE METHODS --//
 
             function executeAndScheduleTick(initiatingTickIndex) {
-                if (isGameExecuting && initiatingTickIndex === lastTickIndex) {
+                if (isGameInProgress && initiatingTickIndex === lastTickIndex) {
                     scheduleTick(tickDelay);
                     
                     if(isMovingDownACollision()){
@@ -1197,19 +1230,11 @@
                         updateSpeedIfNecessary();
                         addBlock();
                         scheduleTick(tickDelay);
-                        updateDisplay();
                     }
                     else{
                         movePieceDown();
                     }
                 }
-            }
-
-            function updateDisplay(){
-                document.getElementById("numLines").innerHTML = numberOfLines;
-                document.getElementById("level").innerHTML = currentLevel;
-                document.getElementById("score").innerHTML = score;
-                document.getElementById("nextPiece").innerHTML = nextTetrisBlock.name;
             }
 
             function scheduleTick(delay) {            
@@ -1485,7 +1510,7 @@
             //Get config values if posted
             window.addEventListener('message', function(event) {
                 if (event.data !== "ready") {
-                    isGameExecuting = true;
+                    isGameInProgress = true;
                     //Override
                     for (var key in event.data) {
                         if (event.data.hasOwnProperty(key)) {
@@ -1498,8 +1523,8 @@
 
             //After a while, give up on config values and start the game anyways
             setTimeout(function() {
-                if (!isGameExecuting) {
-                    isGameExecuting = true;
+                if (!isGameInProgress) {
+                    isGameInProgress = true;
                     callback();
                 }
             }, CONFIG_VALUE_WAIT_TIME_MILLISECONDS);  

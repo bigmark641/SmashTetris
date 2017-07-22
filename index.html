@@ -4,7 +4,7 @@
     <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
 </head>
 <body>
-    <iframe name="SmashTetrisFrame" style="border-style: none;" width="902" height="762" src="SmashTetris.html"></iframe><br />
+    <iframe name="SmashTetrisFrame" style="border-style: none;" width="902" height="602" src="SmashTetris.html"></iframe><br />
     <div style="position: fixed; bottom: 0; background-color: #CCCCCC;">
         <strong>Click on the game to begin.</strong><br />
         <br />
@@ -44,7 +44,7 @@
         //Button refreshes iframe
         $("button").click(function () {
             $("iframe").attr("width", Number($('#VIEWPORT_WIDTH_PIXELS').val()) + 2);
-            $("iframe").attr("height", Number($('#VIEWPORT_HEIGHT_PIXELS').val()) + 162);
+            $("iframe").attr("height", Number($('#VIEWPORT_HEIGHT_PIXELS').val()) + 2);
             $("iframe").attr("src", $("iframe").attr("src"));
             $('form').hide();
         });
