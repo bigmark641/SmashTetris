@@ -586,7 +586,7 @@
 
                         //Mouse click
                         document.onmousedown = function (e) {
-                            console.log(e);
+                            //console.log(e); --just removing this to unclutter the console log. -af
                             if (isGameInProgress) {
                                 if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE){
                                     switch (e.button) {
@@ -1226,7 +1226,8 @@
                     
                     if(isMovingDownACollision()){
                         setPiece();
-                        clearLines();
+                        var linesCleared = clearLines();
+                        updateScoreFromLines(linesCleared);
                         updateSpeedIfNecessary();
                         addBlock();
                         scheduleTick(tickDelay);
@@ -1391,32 +1392,32 @@
                 }
             }           
 
-            function clearLines(){
-                //find all the rows to remove
-                var rowsToRemove = [];
+            function clearLines(){ //finds a line to clear, then calls itself again;
+                //this returns the number of lines cleared;
+
                 for(var rowIndex = 0; rowIndex < world.length; rowIndex++){
                     if(world[rowIndex].reduce((a,b)=>a+b,0)== 32){ //row is [1,3,3,3,3,3,3,3,3,3,3,1], sums to 32
-                        rowsToRemove.push(rowIndex);
+                        world.splice(rowIndex,1);  //remove that row
+                        world.splice(20,0,[1,0,0,0,0,0,0,0,0,0,0,1]); //push a blank row at top
+                        
+                        return 1 + clearLines(); //call itself again, to see if multiple lines need to be cleared.
                     }
                 }
-
-                var numLinesToScore =rowsToRemove.length;
+                return 0;
+            }
+            
+            function updateScoreFromLines(numLinesToScore){
+                console.log("Updating score by "+numLinesToScore+" lines");
                 var pointsPerLine = [0, 40, 100, 300, 1200]; //how many points per num lines (0 lines, 0 points, 0 crates.)
                 //update score
                 //	40 * (n + 1)	100 * (n + 1)	300 * (n + 1)	1200 * (n + 1) (this is how to calc score, which I never knew)
                 score = score + (pointsPerLine[numLinesToScore] * (currentLevel+1));
-
-                //remove lines
-                for(var i =0; i <rowsToRemove.length; i++){
-                    world.splice(rowsToRemove[i],1);  //remove that row
-                    world.splice(20,0,[1,0,0,0,0,0,0,0,0,0,0,1]); //push a blank row at top
-                    //add a line, and maybe speed up
-                    numberOfLines++;
-                    if(numberOfLines >= ((currentLevel*10)+10)){
-                        currentLevel++;
-                    }
+                
+                //add lines to total count, and maybe speed up
+                numberOfLines += numLinesToScore;
+                if(numberOfLines >= ((currentLevel*10)+10)){
+                    currentLevel++;
                 }
-
             }
 
             function isMovingDownACollision(){
