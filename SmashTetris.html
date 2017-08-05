@@ -1034,6 +1034,7 @@
             var score = 0;
             var currentTetrisBlock;
             var nextTetrisBlock;
+            var scoreBonus = 0;
 
             //-- PUBLIC METHODS --//
 
@@ -1189,6 +1190,8 @@
                 if (tickDelay > TETRIS_DROP_TICK_SPEED_MILLISECONDS)
                     tickDelay = TETRIS_DROP_TICK_SPEED_MILLISECONDS;
 
+                //update the score for dropping
+                scoreBonus++;
                 //Immediately initiate tetris tick
                 scheduleTick(0);
             };
@@ -1412,10 +1415,11 @@
                 //update score
                 //	40 * (n + 1)	100 * (n + 1)	300 * (n + 1)	1200 * (n + 1) (this is how to calc score, which I never knew)
                 score = score + (pointsPerLine[numLinesToScore] * (currentLevel+1));
-                
+                score += scoreBonus;
+                scoreBonus = 0;
                 //add lines to total count, and maybe speed up
                 numberOfLines += numLinesToScore;
-                if(numberOfLines >= ((currentLevel*10)+10)){
+                if(numberOfLines >= ((currentLevel*10)+10)){    
                     currentLevel++;
                 }
             }
