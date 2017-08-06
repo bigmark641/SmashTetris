@@ -200,7 +200,6 @@
         /////////////////////////
         // Initialization code //
         /////////////////////////
-        var tetris;
 
         (function () {        
             overrideConfigConstants()
@@ -214,7 +213,6 @@
                     //Start engine
                     var raycastingEngine = new RaycastingEngine();
                     var tetrisEngine = new TetrisEngine();
-                    tetris = tetrisEngine;
                     var playerEngine = new PlayerEngine(raycastingEngine, tetrisEngine);
                 });
         })();
