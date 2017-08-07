@@ -253,6 +253,7 @@
                 raycastingEngine.worldDrawnCallback = drawPlayerOverlay;
                 attachKeyboardListeners(false);                
                 attachMouseListeners();
+                attachGamepadListeners();
                 executeAndScheduleTick(new Date().valueOf());
             })();
 
@@ -780,6 +781,76 @@
                         }
                     }                    
                 }
+            }
+
+             function attachGamepadListeners(){
+                window.addEventListener("gamepadconnected", function(e){
+                    console.log('connectedGamepad');
+
+                    var gamepadButtonCheckerInterval = setInterval(function(){
+                        var gamepad = navigator.getGamepads()[0]; 
+
+                        var horizontalMovement = gamepad.axes[0];
+                        var forwardMovement = gamepad.axes[1];
+                        var horizontalView = gamepad.axes[2];
+                        var verticalView = gamepad.axes[3];
+
+                        if(forwardMovement > 0.5){
+                            isMovingBackward = true;
+                        }
+                        if(forwardMovement < -0.5){
+                            isMovingForward = true;
+                        }
+                        if(forwardMovement > -0.5 && forwardMovement < 0.5){
+                            isMovingForward = false;
+                            isMovingBackward = false;
+                        }
+
+                        if(horizontalMovement > 0.5){
+                            isSidesteppingRight = true;
+                        }
+                        if(horizontalMovement < -0.5){
+                            isSidesteppingLeft = true;
+                        }
+                        if(horizontalMovement > -0.5 && horizontalMovement < 0.5){
+                            isSidesteppingLeft = false;
+                            isSidesteppingRight = false;
+                        }
+
+                        if(horizontalView > 0.5){
+                            isTurningRight = true;
+                        }
+                        if(horizontalView < -0.5){
+                            isTurningLeft = true;
+                        }
+                        if(horizontalView > -0.5 && horizontalView < 0.5){
+                            isTurningLeft = false;
+                            isTurningRight = false;
+                        }
+
+
+                        if(gamepad.buttons[0].pressed){
+                             if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
+                                if (isFacingRight()) {
+                                    tetrisEngine.moveLeft();
+                                    pushPlayerRightIfNecessary();
+                                }
+                                else {
+                                    tetrisEngine.moveRight();
+                                    pushPlayerLeftIfNecessary();
+                                }
+                            }
+                            //button 1
+                            console.log('button 1');
+                        }
+                        if(gamepad.buttons[1].pressed){
+                            //button 1
+                            console.log('button 2');
+                        }
+
+                    }, 30); //millisecond interval for listener
+
+                })
             }
         }
 
