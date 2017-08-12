@@ -19,14 +19,16 @@ function GameEngine() {
     //////////////////////////////
 
     var playerEngine;
-    var isMouseMode = false;
+    var isInMouseMode = false;
 
 
     //////////////////////
     // CONSTRUCTOR CODE //
     //////////////////////
 
-    (function () {        
+    (function () {       
+        
+        //Override config constants
         overrideConfigConstants()
             .then(function () {
 
@@ -35,8 +37,8 @@ function GameEngine() {
 
                 attachMouseListeners();
 
-                //Get difficulty
-                getDifficulty()
+                //Get difficulty from user
+                getDifficultyFromUser()
                     .then(function (result) {
                         var difficulty = result;
                         var drawMinimap = difficulty <= DIFFICULTY_MEDIUM;
@@ -53,7 +55,7 @@ function GameEngine() {
                         playerEngine = new PlayerEngine(raycastingEngine, tetrisEngine);
                         
                         //Initialize controls
-                        if (isMouseMode)
+                        if (isInMouseMode)
                             playerEngine.setupControlsForMouseMode();
                         else
                             playerEngine.setupControlsForKeyboardMode();
@@ -100,7 +102,7 @@ function GameEngine() {
         }};
     }        
 
-    function getDifficulty() {
+    function getDifficultyFromUser() {
         var callback;
         var selectedDifficulty = DIFFICULTY_EASY;
         
@@ -174,7 +176,7 @@ function GameEngine() {
                     canvasElement.webkitRequestPointerLock;
                 canvasElement.requestPointerLock();
 
-                isMouseMode = true;
+                isInMouseMode = true;
                 if (isGameInProgress)
                     playerEngine.setupControlsForMouseMode();
 
@@ -183,7 +185,7 @@ function GameEngine() {
                     if (document.pointerLockElement !== canvasElement
                             && document.mozPointerLockElement !== canvasElement
                             && document.webkitPointerLockElement !== canvasElement) {
-                        isMouseMode = false;
+                        isInMouseMode = false;
                         playerEngine.setupControlsForKeyboardMode();
                     }
                 }

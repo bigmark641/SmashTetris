@@ -150,19 +150,19 @@ function TetrisEngine() {
 
     self.getNumberOfLines = function () {
         return numberOfLines;
-    }
+    };
 
     self.getScore = function () {
         return score;
-    }
+    };
 
     self.getLevel = function () {
         return currentLevel;
-    }
+    };
 
     self.getNextPiece = function () {
         return nextTetrisBlock.initial;
-    }
+    };
 
     self.moveLeft = function () {
         console.log("Move Tetris piece left.");
@@ -333,7 +333,9 @@ function TetrisEngine() {
     })();
 
 
-    //-- PRIVATE METHODS --//
+    /////////////////////
+    // PRIVATE METHODS //
+    /////////////////////
 
     function executeAndScheduleTick(initiatingTickIndex) {
         if (isGameInProgress && initiatingTickIndex === lastTickIndex) {

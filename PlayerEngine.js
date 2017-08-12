@@ -31,6 +31,11 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
     // PUBLIC FUNCTIONALITY //            
     //////////////////////////
 
+    self.turnLeft = function (radians) {
+        playerA += radians;
+        normalizePlayerA();
+    };
+
     self.setupControlsForKeyboardMode = function () {
 
         //Bind keyboard for keyboard mode
@@ -41,7 +46,7 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
         document.onmousedown = null;
         document.onmouseup = null;
         document.oncontextmenu = null;
-    }
+    };
 
     self.setupControlsForMouseMode = function () {
 
@@ -51,8 +56,7 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
         //Mouse look
         document.onmousemove = function (e) {
             if (isGameInProgress) {                    
-                playerA += MOUSE_SENSITIVITY * -e.movementX;
-                normalizePlayerA();
+                self.turnLeft(MOUSE_SENSITIVITY * -e.movementX);
             }
         };  
 
@@ -115,7 +119,7 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
         document.oncontextmenu = function (e) {
             e.preventDefault();
         };
-    }
+    };
     
 
     //////////////////////

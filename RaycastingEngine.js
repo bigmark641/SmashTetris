@@ -100,7 +100,7 @@ function RaycastingEngine(drawMinimapParam, drawPlayerOnMinimapParam) {
         canvasContext.moveTo(x1, y1);
         canvasContext.lineTo(x2, y2);
         canvasContext.stroke();
-    }
+    };
 
     self.worldDrawnCallback = null;
 
