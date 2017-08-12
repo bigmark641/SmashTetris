@@ -154,7 +154,7 @@
                              [2,0,0,0],
                              [2,0,0,0]]
                         ]};
-         window.TETRIS_PIECES = [                               //An array of the possible tetris pieces
+         window.TETRIS_PIECES = [
                             window.TETRIS_S,
                             window.TETRIS_Z,
                             window.TETRIS_I,                            
@@ -193,11 +193,15 @@
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        ]; //first row is bottom of world, left is left, right is right.
+        ];
         var playerX;
         var playerY;
         var playerA;
         var isGameInProgress = false;
+        var canvasContext;
+
+        var playerEngine;
+        var isMouseMode = false;
 
 
         /////////////////////////
@@ -207,6 +211,11 @@
         (function () {        
             overrideConfigConstants()
                 .then(function () {
+
+                    //Initialize canvas context                    
+                    canvasContext = initializeAndGetCanvasContext();  
+
+                    attachMouseListeners();
 
                     //Get difficulty
                     getDifficulty()
@@ -223,7 +232,13 @@
                             //Start engine
                             var raycastingEngine = new RaycastingEngine(drawMinimap, drawPlayerOnMinimap);
                             var tetrisEngine = new TetrisEngine();
-                            var playerEngine = new PlayerEngine(raycastingEngine, tetrisEngine);
+                            playerEngine = new PlayerEngine(raycastingEngine, tetrisEngine);
+                            
+                            //Initialize controls
+                            if (isMouseMode)
+                                playerEngine.setupControlsForMouseMode();
+                            else
+                                playerEngine.setupControlsForKeyboardMode();
                         });
                 });
         })();
@@ -261,12 +276,99 @@
             (function () {
                 tetrisEngine.pieceMovedDownCallback = pushPlayerDownIfNecessary;
                 tetrisEngine.playerLostCallback = playerLostTetris;
-                raycastingEngine.worldDrawnCallback = drawPlayerOverlay;
-                attachKeyboardListeners(false);                
-                attachMouseListeners();
+                raycastingEngine.worldDrawnCallback = drawPlayerOverlay; 
                 attachGamepadListeners();
                 executeAndScheduleTick(new Date().valueOf());
             })();
+
+
+            //-- PUBLIC FUNCTIONALITY --//            
+
+            self.setupControlsForKeyboardMode = function () {
+
+                //Bind keyboard for keyboard mode
+                attachKeyboardListeners(false);
+                
+                //Unbind mouse listeners
+                document.onmousemove = null;
+                document.onmousedown = null;
+                document.onmouseup = null;
+                document.oncontextmenu = null;
+            }
+
+            self.setupControlsForMouseMode = function () {
+
+                //Bind keyboard controls for mouse mode
+                attachKeyboardListeners(true);
+
+                //Mouse look
+                document.onmousemove = function (e) {
+                    if (isGameInProgress) {                    
+                        playerA += MOUSE_SENSITIVITY * -e.movementX;
+                        normalizePlayerA();
+                    }
+                };  
+
+                //Mouse click
+                document.onmousedown = function (e) {
+                    if (isGameInProgress) {
+                        if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE){
+                            switch (e.button) {
+                                case 0: //Left click
+                                    if(e.ctrlKey){ //Holding ctrl
+                                        tetrisEngine.rotate(1);
+                                        pushPlayerToClosestAdjacentIfNecessary();
+                                    }
+                                    else{
+                                        if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
+                                            if (isFacingRight()) {
+                                                tetrisEngine.moveLeft();
+                                                pushPlayerRightIfNecessary();
+                                            }
+                                            else {
+                                                tetrisEngine.moveRight();
+                                                pushPlayerLeftIfNecessary();
+                                            }
+                                        }
+                                    }
+                                    
+                                    break;
+                                case 1: //Middle button
+                                    isDropping = true;
+                                    break;
+                                case 2: //Right click
+                                    if(e.ctrlKey){ //Holding ctrl
+                                        tetrisEngine.rotate(-1);
+                                        pushPlayerToClosestAdjacentIfNecessary();
+                                    }
+                                    else{
+                                        if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
+                                            if (isFacingRight()) {
+                                                tetrisEngine.moveRight();
+                                                pushPlayerRightIfNecessary();
+                                            }
+                                            else {
+                                                tetrisEngine.moveLeft();
+                                                pushPlayerLeftIfNecessary();
+                                            }
+                                        }
+                                    }
+                                    break;
+                            }                            
+                        }
+                    }
+                };
+
+                //Mouse unclick
+                document.onmouseup = function (e) {
+                    isDropping = false;
+                };
+
+                //Disable browser context menu
+                document.oncontextmenu = function (e) {
+                    e.preventDefault();
+                };
+            }
 
 
             //-- PRIVATE FUNCTIONALITY --//
@@ -534,11 +636,11 @@
                 isGameInProgress = false;            
             }
 
-            function drawPlayerOverlay(canvasContext) {
+            function drawPlayerOverlay() {
 
                 //Draw crosshairs
-                raycastingEngine.drawLine(canvasContext, VIEWPORT_WIDTH_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2 - VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_WIDTH_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2 + VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_CROSSHAIR_COLOR);
-                raycastingEngine.drawLine(canvasContext, VIEWPORT_WIDTH_PIXELS / 2 - VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2, VIEWPORT_WIDTH_PIXELS / 2 + VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2, VIEWPORT_CROSSHAIR_COLOR);
+                raycastingEngine.drawLine(VIEWPORT_WIDTH_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2 - VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_WIDTH_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2 + VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_CROSSHAIR_COLOR);
+                raycastingEngine.drawLine(VIEWPORT_WIDTH_PIXELS / 2 - VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2, VIEWPORT_WIDTH_PIXELS / 2 + VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2, VIEWPORT_CROSSHAIR_COLOR);
                 
                 //Draw next piece
                 var nextPiece = tetrisEngine.getNextPiece();
@@ -582,106 +684,6 @@
                 if (playerA < 0)
                     playerA += 2 * Math.PI;
                 playerA %= 2 * Math.PI;
-            }
-
-            function attachMouseListeners(){
-                var canvasElement = document.getElementById("canvas");
-                canvasElement.onclick = function () {
-                
-                    //Lock pointer and enter mouse mode
-                    if ('pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document) {
-                        canvasElement.requestPointerLock = canvasElement.requestPointerLock ||
-                            canvasElement.mozRequestPointerLock ||
-                            canvasElement.webkitRequestPointerLock;
-                        canvasElement.requestPointerLock();
-
-                        //Rebind keyboard controls to mouse mode
-                        attachKeyboardListeners(true);
-
-                        //Mouse look
-                        document.onmousemove = function (e) {
-                            if (isGameInProgress) {                    
-                                playerA += MOUSE_SENSITIVITY * -e.movementX;
-                                normalizePlayerA();
-                            }
-                        };  
-
-                        //Mouse click
-                        document.onmousedown = function (e) {
-                            if (isGameInProgress) {
-                                if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE){
-                                    switch (e.button) {
-                                        case 0: //Left click
-                                            if(e.ctrlKey){ //Holding ctrl
-                                                tetrisEngine.rotate(1);
-                                                pushPlayerToClosestAdjacentIfNecessary();
-                                            }
-                                            else{
-                                                if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
-                                                    if (isFacingRight()) {
-                                                        tetrisEngine.moveLeft();
-                                                        pushPlayerRightIfNecessary();
-                                                    }
-                                                    else {
-                                                        tetrisEngine.moveRight();
-                                                        pushPlayerLeftIfNecessary();
-                                                    }
-                                                }
-                                            }
-                                            
-                                            break;
-                                        case 1: //Middle button
-                                            isDropping = true;
-                                            break;
-                                        case 2: //Right click
-                                            if(e.ctrlKey){ //Holding ctrl
-                                                tetrisEngine.rotate(-1);
-                                                pushPlayerToClosestAdjacentIfNecessary();
-                                            }
-                                            else{
-                                                if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
-                                                    if (isFacingRight()) {
-                                                        tetrisEngine.moveRight();
-                                                        pushPlayerRightIfNecessary();
-                                                    }
-                                                    else {
-                                                        tetrisEngine.moveLeft();
-                                                        pushPlayerLeftIfNecessary();
-                                                    }
-                                                }
-                                            }
-                                            break;
-                                    }                            
-                                }
-                            }
-                        };
-
-                        //Mouse unclick
-                        document.onmouseup = function (e) {
-                            isDropping = false;
-                        };
-
-                        //Disable browser context menu
-                        document.oncontextmenu = function (e) {
-                            e.preventDefault();
-                        };
-
-                        //Allow unlocking out of mouse mode
-                        document.onpointerlockchange = function (e) {
-                            if (document.pointerLockElement !== canvasElement
-                                    && document.mozPointerLockElement !== canvasElement
-                                    && document.webkitPointerLockElement !== canvasElement) {
-                                attachKeyboardListeners(false);
-                                document.onmousemove = null;
-                                document.onmousedown = null;
-                                document.onmouseup = null;
-                                document.oncontextmenu = null;
-                            }
-                        }
-                        document.onmozpointerlockchange = document.onpointerlockchange;
-                        document.onwebkitpointerlockchange = document.onpointerlockchange;
-                    }
-                }
             }
 
             function attachKeyboardListeners(isMouseMode) {
@@ -968,7 +970,7 @@
                 };
             };
             
-            self.drawLine = function (canvasContext, x1, y1, x2, y2, color) {
+            self.drawLine = function (x1, y1, x2, y2, color) {
                 canvasContext.beginPath();
                 canvasContext.strokeStyle = color;
                 canvasContext.moveTo(x1, y1);
@@ -982,26 +984,25 @@
             //-- CONSTRUCTOR CODE --//
 
             (function () {
-                var canvasContext = initializeAndGetCanvasContext();
-                executeAndScheduleTick(new Date().valueOf(), canvasContext);
+                executeAndScheduleTick(new Date().valueOf());
             })();
 
 
             //-- PRIVATE METHODS --//
             
-            function executeAndScheduleTick(lastTickTime, canvasContext) {
+            function executeAndScheduleTick(lastTickTime) {
                 
                 //Schedule next tick
                 var currentTickTime = new Date().valueOf();
                 setTimeout(function () {
-                    executeAndScheduleTick(currentTickTime, canvasContext); 
+                    executeAndScheduleTick(currentTickTime); 
                 }, TICK_DELAY);
 
                 //Draw
-                drawScreen(canvasContext);
+                drawScreen();
             }
 
-            function drawScreen(canvasContext) {
+            function drawScreen() {
                 var facingWallType = self.getWallType(playerA);
 
                 //For each viewport column
@@ -1030,7 +1031,7 @@
                         wallHeightOnViewport = VIEWPORT_HEIGHT_PIXELS;
 
                     //Draw column
-                    drawColumn(canvasContext, col, wallHeightOnViewport, firstHitWallType, isFirstHitHorizontalWall, distFromViewport * WALL_DISTANCE_SHADE, facingWallType);
+                    drawColumn(col, wallHeightOnViewport, firstHitWallType, isFirstHitHorizontalWall, distFromViewport * WALL_DISTANCE_SHADE, facingWallType);
                 }                    
 
                 //Draw overhead map
@@ -1050,16 +1051,16 @@
                         var leftRayA = playerA + Math.atan(.5 / VIEWPORT_DIST);
                         var leftRayX = playerX + 3 * Math.cos(leftRayA);
                         var leftRayY = playerY + 3 * Math.sin(leftRayA);
-                        self.drawLine(canvasContext, playerX * 10, VIEWPORT_HEIGHT_PIXELS - playerY * 10, leftRayX * 10, VIEWPORT_HEIGHT_PIXELS - leftRayY * 10, "#BBBBBB");
+                        self.drawLine(playerX * 10, VIEWPORT_HEIGHT_PIXELS - playerY * 10, leftRayX * 10, VIEWPORT_HEIGHT_PIXELS - leftRayY * 10, "#BBBBBB");
                         var rightRayA = playerA + Math.atan(-.5 / VIEWPORT_DIST);
                         var rightRayX = playerX + 3 * Math.cos(rightRayA);
                         var rightRayY = playerY + 3 * Math.sin(rightRayA);
-                        self.drawLine(canvasContext, playerX * 10, VIEWPORT_HEIGHT_PIXELS - playerY * 10, rightRayX * 10, VIEWPORT_HEIGHT_PIXELS - rightRayY * 10, "#BBBBBB");
+                        self.drawLine(playerX * 10, VIEWPORT_HEIGHT_PIXELS - playerY * 10, rightRayX * 10, VIEWPORT_HEIGHT_PIXELS - rightRayY * 10, "#BBBBBB");
                     }
                 }
              
                 if (self.worldDrawnCallback !== null)
-                    self.worldDrawnCallback(canvasContext);
+                    self.worldDrawnCallback();
             }
 
             function getFirstHit(angle) {
@@ -1069,7 +1070,7 @@
                 return isFirstHitHorizontalWall ? hitY : hitX;
             }
 
-            function drawColumn(canvasContext, col, wallHeight, wallType, isHorizontalWall, wallShade, facingWallType) {
+            function drawColumn(col, wallHeight, wallType, isHorizontalWall, wallShade, facingWallType) {
 
                 //Get wall position
                 var wallTop = (VIEWPORT_HEIGHT_PIXELS - wallHeight) / 2;
@@ -1083,9 +1084,9 @@
                     wallColor = isHorizontalWall ? WALL_COLORS[wallType - 1] : VERTICAL_WALL_COLORS[wallType - 1];
 
                 //Draw column
-                self.drawLine(canvasContext, col, 0, col, wallTop, SKY_COLOR);
-                self.drawLine(canvasContext, col, wallTop, col, wallBottom, shadeColor(wallColor, wallShade));
-                self.drawLine(canvasContext, col, wallBottom, col, VIEWPORT_HEIGHT_PIXELS, GROUND_COLOR);
+                self.drawLine(col, 0, col, wallTop, SKY_COLOR);
+                self.drawLine(col, wallTop, col, wallBottom, shadeColor(wallColor, wallShade));
+                self.drawLine(col, wallBottom, col, VIEWPORT_HEIGHT_PIXELS, GROUND_COLOR);
             }
             
             function shadeColor(color, percent) {
@@ -1632,20 +1633,21 @@
             var callback;
             var selectedDifficulty = DIFFICULTY_EASY;
             
-            //Draw prompt
-            var canvasContext = initializeAndGetCanvasContext();   
+            //Draw prompt 
             drawDifficultyPrompt();
 
             //Handle user selection
             document.onkeydown = function (keyboardEvent) {
                 switch (keyboardEvent.keyCode) {
                     case 38: //Up arrow
+                    case 87: //W
                         selectedDifficulty--;
                         if (selectedDifficulty < DIFFICULTY_EASY)
                             selectedDifficulty += 1 + DIFFICULTY_HARD - DIFFICULTY_EASY;
                         drawDifficultyPrompt();
                         break;
                     case 40: //Down arrow
+                    case 83: //S
                         selectedDifficulty++;
                         if (selectedDifficulty > DIFFICULTY_HARD)
                             selectedDifficulty-= 1 + DIFFICULTY_HARD - DIFFICULTY_EASY;
@@ -1687,6 +1689,36 @@
                 canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) + 57, (VIEWPORT_HEIGHT_PIXELS / 2) -50 + selectedDifficulty * selectionHeight, 60, 20);
                 canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) + 97, (VIEWPORT_HEIGHT_PIXELS / 2) -70 + selectedDifficulty * selectionHeight, 20, 20);
                 canvasContext.stroke();
+            }
+        }
+
+        function attachMouseListeners(){
+            var canvasElement = document.getElementById("canvas");
+            canvasElement.onclick = function () {
+            
+                //Lock pointer and enter mouse mode
+                if ('pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document) {
+                    canvasElement.requestPointerLock = canvasElement.requestPointerLock ||
+                        canvasElement.mozRequestPointerLock ||
+                        canvasElement.webkitRequestPointerLock;
+                    canvasElement.requestPointerLock();
+
+                    isMouseMode = true;
+                    if (isGameInProgress)
+                        playerEngine.setupControlsForMouseMode();
+
+                    //Allow unlocking out of mouse mode
+                    document.onpointerlockchange = function (e) {
+                        if (document.pointerLockElement !== canvasElement
+                                && document.mozPointerLockElement !== canvasElement
+                                && document.webkitPointerLockElement !== canvasElement) {
+                            isMouseMode = false;
+                            playerEngine.setupControlsForKeyboardMode();
+                        }
+                    }
+                    document.onmozpointerlockchange = document.onpointerlockchange;
+                    document.onwebkitpointerlockchange = document.onpointerlockchange;
+                }
             }
         }
             

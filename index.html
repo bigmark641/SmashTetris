@@ -6,9 +6,7 @@
 <body>
     <iframe name="SmashTetrisFrame" style="border-style: none;" width="902" height="602" src="SmashTetris.html"></iframe><br />
     <div style="position: fixed; bottom: 0; background-color: #CCCCCC;">
-        <strong>Click on the game to begin.</strong><br />
-        <br />
-        Mouse controls: Use WASD to walk.  "Shoot" a piece with left/right click to pull/push it, control-click to rotate, and space to drop.<br />
+        Click on game to activate mouse controls: Use WASD to walk.  "Shoot" a piece with left/right click to pull/push it, control-click to rotate, and space to drop.<br />
         Press escape to activate keyboard controls: Use WASD to walk.  Q and E sidestep.  "Shoot" a piece with the left and right arrows to move it, up to rotate, and down to drop.<br />        
         <br />
         Click <a onclick="$('form').toggle();" style="text-decoration: underline">here</a> for config/debugging overrides.
@@ -41,6 +39,9 @@
     </div>
     <script>
 
+        //Set focus to iframe
+        $("iframe").focus();
+
         //Button refreshes iframe
         $("button").click(function () {
             $("iframe").attr("width", Number($('#VIEWPORT_WIDTH_PIXELS').val()) + 2);
@@ -65,15 +66,6 @@
                 //Send message
                 frames[0].postMessage(message, "*");
         });
-
-        $("iframe").focus();
     </script>
-    <!--<br/>
-    <code></code>
-    <script>
-        $.get("SmashTetris.html", function(data) {
-            $("code").text(data);
-        })
-    </script>-->
 </body>
 </html>

@@ -5,9 +5,7 @@ After having some fun writing a raycasting engine in Javascript, I thought it wo
 
 **How to play:**
 
-    Click on the game to begin.
-
-    Mouse controls: Use WASD to walk.  "Shoot" a piece with left/right click to pull/push it, control-click to rotate, and space to drop.
+    Click on game to activate mouse controls: Use WASD to walk.  "Shoot" a piece with left/right click to pull/push it, control-click to rotate, and space to drop.
         
     Press escape to activate keyboard controls: Use WASD to walk.  Q and E sidestep.  "Shoot" a piece with the left and right arrows to move it, up to rotate, and down to drop.
 
