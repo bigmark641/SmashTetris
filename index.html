@@ -40,7 +40,7 @@
     <script>
 
         //Set focus to iframe
-        $("iframe").focus();
+        setTimeout(function () {$("iframe")[0].contentWindow.focus();}, 0);
 
         //Button refreshes iframe
         $("button").click(function () {
