@@ -38,9 +38,7 @@
         </form>
     </div>
     <script>
-
-        //Set focus to iframe
-        setTimeout(function () {$("iframe")[0].contentWindow.focus();}, 0);
+        setFocusToGame();
 
         //Button refreshes iframe
         $("button").click(function () {
@@ -48,9 +46,10 @@
             $("iframe").attr("height", Number($('#VIEWPORT_HEIGHT_PIXELS').val()) + 2);
             $("iframe").attr("src", $("iframe").attr("src"));
             $('form').hide();
+            setFocusToGame();
         });
 
-        //Send message when iframe is ready
+        //Send config values when iframe is ready
         window.addEventListener('message', function(event) {
             if (event.data === "ready")    
 
@@ -66,6 +65,10 @@
                 //Send message
                 frames[0].postMessage(message, "*");
         });
+
+        function setFocusToGame() {            
+            setTimeout(function () {$("iframe")[0].contentWindow.focus();}, 0);
+        }
     </script>
 </body>
 </html>
