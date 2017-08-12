@@ -1304,7 +1304,7 @@
             //-- CONSTRUCTOR CODE --//
 
             (function () {
-                nextTetrisBlock = TETRIS_PIECES[6];//Math.floor(Math.random()*(TETRIS_PIECES.length))];
+                nextTetrisBlock = TETRIS_PIECES[Math.floor(Math.random()*(TETRIS_PIECES.length))];
                 addBlock();
                 scheduleTick(0);
             })();
