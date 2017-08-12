@@ -375,11 +375,15 @@
 
             function pushPlayerDownIfNecessary() {                    
                 if (Math.floor(playerX) !== playerX) {
-                    if (world[Math.floor(playerY - PLAYER_PUSHED_BUFFER)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE)
+                    if (       world[Math.floor(playerY)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE
+                            || world[Math.floor(playerY - PLAYER_PUSHED_BUFFER)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE)
                         playerY = Math.floor(playerY - PLAYER_PUSHED_BUFFER) - PLAYER_PUSHED_BUFFER;
                 }
                 else if (Math.floor(playerX) === playerX) {
-                    if (world[Math.floor(playerY - PLAYER_PUSHED_BUFFER)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE || world[Math.floor(playerY - PLAYER_PUSHED_BUFFER)][Math.floor(playerX) - 1] === WALL_TYPE_PIECE_ACTIVE)
+                    if (       world[Math.floor(playerY)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE
+                            || world[Math.floor(playerY)][Math.floor(playerX) - 1] === WALL_TYPE_PIECE_ACTIVE
+                            || world[Math.floor(playerY - PLAYER_PUSHED_BUFFER)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE
+                            || world[Math.floor(playerY - PLAYER_PUSHED_BUFFER)][Math.floor(playerX) - 1] === WALL_TYPE_PIECE_ACTIVE)
                         playerY = Math.floor(playerY - PLAYER_PUSHED_BUFFER) - PLAYER_PUSHED_BUFFER;
                 }
                 handleSmashIfNecessary();
@@ -387,25 +391,41 @@
 
             function pushPlayerLeftIfNecessary() {                    
                 if (Math.floor(playerY) !== playerY) {
-                    if (world[Math.floor(playerY)][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE)
+                    if (       world[Math.floor(playerY)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE
+                            || world[Math.floor(playerY)][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE)
                         playerX = Math.floor(playerX - PLAYER_PUSHED_BUFFER) - PLAYER_PUSHED_BUFFER;
                 }
                 else if (Math.floor(playerY) === playerY) {
-                    if (world[Math.floor(playerY)][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE || world[Math.floor(playerY) - 1][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE)
+                    if (       world[Math.floor(playerY)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE
+                            || world[Math.floor(playerY) - 1][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE
+                            || world[Math.floor(playerY)][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE
+                            || world[Math.floor(playerY) - 1][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE)
                         playerX = Math.floor(playerX - PLAYER_PUSHED_BUFFER) - PLAYER_PUSHED_BUFFER;
                 }
                 handleSmashIfNecessary();
             }
 
-            function pushPlayerRightIfNecessary() {              
+            function pushPlayerRightIfNecessary() {    
+                console.log("Before: PlayerX:" + playerX + " PlayerY:" + playerY);          
                 if (Math.floor(playerY) !== playerY) {
-                    if (world[Math.floor(playerY)][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE)
+                    if (       world[Math.floor(playerY)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE
+                            || world[Math.floor(playerY)][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE)
                         playerX = Math.ceil(playerX + PLAYER_PUSHED_BUFFER) + PLAYER_PUSHED_BUFFER;
+                    else
+                        console.log("In else 1");
                 }
                 else if (Math.floor(playerY) === playerY) {
-                    if (world[Math.floor(playerY)][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE || world[Math.floor(playerY) - 1][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE)
+                    if (       world[Math.floor(playerY)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE
+                            || world[Math.floor(playerY) - 1][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE
+                            || world[Math.floor(playerY)][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE
+                            || world[Math.floor(playerY) - 1][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE)
                         playerX = Math.ceil(playerX + PLAYER_PUSHED_BUFFER) + PLAYER_PUSHED_BUFFER;
+                    else
+                        console.log("In else 2");
                 }
+                else
+                    console.log("In else 3");
+                console.log("After: PlayerX:" + playerX + " PlayerY:" + playerY);
                 handleSmashIfNecessary();
             }
 
@@ -1213,7 +1233,7 @@
             //-- CONSTRUCTOR CODE --//
 
             (function () {
-                nextTetrisBlock = TETRIS_PIECES[Math.floor(Math.random()*(TETRIS_PIECES.length))];
+                nextTetrisBlock = TETRIS_PIECES[6];//Math.floor(Math.random()*(TETRIS_PIECES.length))];
                 addBlock();
                 scheduleTick(0);
             })();
