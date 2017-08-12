@@ -36,6 +36,7 @@ function GameEngine() {
                 canvasContext = initializeAndGetCanvasContext();  
 
                 attachMouseListeners();
+                attachGamepadListeners();
 
                 //Get difficulty from user
                 getDifficultyFromUser()
@@ -44,7 +45,8 @@ function GameEngine() {
                         var drawMinimap = difficulty <= DIFFICULTY_MEDIUM;
                         var drawPlayerOnMinimap = difficulty <= DIFFICULTY_EASY;
 
-                        //Set initial position
+                        //Initialize game variables
+                        isGameInProgress = true;
                         playerX = PLAYER_STARTING_X;
                         playerY = PLAYER_STARTING_Y;
                         playerA = PLAYER_STARTING_ANGLE_DEGREES * 2 * Math.PI / 360;
@@ -56,9 +58,10 @@ function GameEngine() {
                         
                         //Initialize controls
                         if (isInMouseMode)
-                            playerEngine.setupControlsForMouseMode();
+                            setupControlsForMouseMode();
                         else
-                            playerEngine.setupControlsForKeyboardMode();
+                            setupControlsForKeyboardMode();
+                        
                     });
             });
     })();
@@ -70,6 +73,7 @@ function GameEngine() {
 
     function overrideConfigConstants() {
         var callback;
+        var callbackCalled = false;
         
         //Notify parent window that we're ready to receive config values
         parent.postMessage("ready", "*");
@@ -77,21 +81,21 @@ function GameEngine() {
         //Get config values if posted
         window.addEventListener('message', function(event) {
             if (event.data !== "ready") {
-                isGameInProgress = true;
                 //Override
                 for (var key in event.data) {
                     if (event.data.hasOwnProperty(key)) {
                         window[key] = event.data[key];
                     }
                 }
+                callbackCalled = true;
                 callback();
             }
         });
 
         //After a while, give up on config values and start the game anyways
         setTimeout(function() {
-            if (!isGameInProgress) {
-                isGameInProgress = true;
+            if (!callbackCalled) {
+                callbackCalled = true;
                 callback();
             }
         }, CONFIG_VALUE_WAIT_TIME_MILLISECONDS);  
@@ -107,7 +111,7 @@ function GameEngine() {
         var selectedDifficulty = DIFFICULTY_EASY;
         
         //Draw prompt 
-        drawDifficultyPrompt();
+        drawDifficultyPrompt(selectedDifficulty);
 
         //Handle user selection
         document.onkeydown = function (keyboardEvent) {
@@ -117,14 +121,14 @@ function GameEngine() {
                     selectedDifficulty--;
                     if (selectedDifficulty < DIFFICULTY_EASY)
                         selectedDifficulty += 1 + DIFFICULTY_HARD - DIFFICULTY_EASY;
-                    drawDifficultyPrompt();
+                    drawDifficultyPrompt(selectedDifficulty);
                     break;
                 case 40: //Down arrow
                 case 83: //S
                     selectedDifficulty++;
                     if (selectedDifficulty > DIFFICULTY_HARD)
                         selectedDifficulty-= 1 + DIFFICULTY_HARD - DIFFICULTY_EASY;
-                    drawDifficultyPrompt();
+                    drawDifficultyPrompt(selectedDifficulty);
                     break;
                 case 13: //Enter
                     callback(selectedDifficulty);
@@ -135,34 +139,34 @@ function GameEngine() {
         //Return promise
         return {then: function (promiseCallback) {
             callback = promiseCallback;
-        }};         
+        }};       
+    }  
 
-        function drawDifficultyPrompt() {
-            var selectionHeight = 120;
+    function drawDifficultyPrompt(selectedDifficulty) {
+        var selectionHeight = 120;
 
-            //Clear
-            canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+        //Clear
+        canvasContext.clearRect(0, 0, canvas.width, canvas.height);
 
-            //Draw text
-            canvasContext.fillStyle = "black";
-            canvasContext.font = "bold 64px Arial";
-            canvasContext.fillText("Choose difficulty:", (VIEWPORT_WIDTH_PIXELS / 2) - 300, (VIEWPORT_HEIGHT_PIXELS / 2) -230);
-            canvasContext.fillText("Easy", (VIEWPORT_WIDTH_PIXELS / 2) - 150, (VIEWPORT_HEIGHT_PIXELS / 2) - 60 + DIFFICULTY_EASY * selectionHeight);
-            canvasContext.fillText("Medium", (VIEWPORT_WIDTH_PIXELS / 2) - 150, (VIEWPORT_HEIGHT_PIXELS / 2) - 60 + DIFFICULTY_MEDIUM * selectionHeight);
-            canvasContext.fillText("Hard", (VIEWPORT_WIDTH_PIXELS / 2) - 150, (VIEWPORT_HEIGHT_PIXELS / 2) - 60 + DIFFICULTY_HARD * selectionHeight);
+        //Draw text
+        canvasContext.fillStyle = "black";
+        canvasContext.font = "bold 64px Arial";
+        canvasContext.fillText("Choose difficulty:", (VIEWPORT_WIDTH_PIXELS / 2) - 300, (VIEWPORT_HEIGHT_PIXELS / 2) -230);
+        canvasContext.fillText("Easy", (VIEWPORT_WIDTH_PIXELS / 2) - 150, (VIEWPORT_HEIGHT_PIXELS / 2) - 60 + DIFFICULTY_EASY * selectionHeight);
+        canvasContext.fillText("Medium", (VIEWPORT_WIDTH_PIXELS / 2) - 150, (VIEWPORT_HEIGHT_PIXELS / 2) - 60 + DIFFICULTY_MEDIUM * selectionHeight);
+        canvasContext.fillText("Hard", (VIEWPORT_WIDTH_PIXELS / 2) - 150, (VIEWPORT_HEIGHT_PIXELS / 2) - 60 + DIFFICULTY_HARD * selectionHeight);
 
-            //Draw selection
-            canvasContext.fillStyle = WALL_COLORS[WALL_TYPE_PIECE_ACTIVE - 1];
-            canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) - 173, (VIEWPORT_HEIGHT_PIXELS / 2) -135 + selectedDifficulty * selectionHeight, 60, 20);
-            canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) - 173, (VIEWPORT_HEIGHT_PIXELS / 2) -115 + selectedDifficulty * selectionHeight, 20, 20);
-            canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) - 173, (VIEWPORT_HEIGHT_PIXELS / 2) -50 + selectedDifficulty * selectionHeight, 60, 20);
-            canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) - 173, (VIEWPORT_HEIGHT_PIXELS / 2) -70 + selectedDifficulty * selectionHeight, 20, 20);
-            canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) + 57, (VIEWPORT_HEIGHT_PIXELS / 2) -135 + selectedDifficulty * selectionHeight, 60, 20);
-            canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) + 97, (VIEWPORT_HEIGHT_PIXELS / 2) -115 + selectedDifficulty * selectionHeight, 20, 20);
-            canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) + 57, (VIEWPORT_HEIGHT_PIXELS / 2) -50 + selectedDifficulty * selectionHeight, 60, 20);
-            canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) + 97, (VIEWPORT_HEIGHT_PIXELS / 2) -70 + selectedDifficulty * selectionHeight, 20, 20);
-            canvasContext.stroke();
-        }
+        //Draw selection
+        canvasContext.fillStyle = WALL_COLORS[WALL_TYPE_PIECE_ACTIVE - 1];
+        canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) - 173, (VIEWPORT_HEIGHT_PIXELS / 2) -135 + selectedDifficulty * selectionHeight, 60, 20);
+        canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) - 173, (VIEWPORT_HEIGHT_PIXELS / 2) -115 + selectedDifficulty * selectionHeight, 20, 20);
+        canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) - 173, (VIEWPORT_HEIGHT_PIXELS / 2) -50 + selectedDifficulty * selectionHeight, 60, 20);
+        canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) - 173, (VIEWPORT_HEIGHT_PIXELS / 2) -70 + selectedDifficulty * selectionHeight, 20, 20);
+        canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) + 57, (VIEWPORT_HEIGHT_PIXELS / 2) -135 + selectedDifficulty * selectionHeight, 60, 20);
+        canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) + 97, (VIEWPORT_HEIGHT_PIXELS / 2) -115 + selectedDifficulty * selectionHeight, 20, 20);
+        canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) + 57, (VIEWPORT_HEIGHT_PIXELS / 2) -50 + selectedDifficulty * selectionHeight, 60, 20);
+        canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) + 97, (VIEWPORT_HEIGHT_PIXELS / 2) -70 + selectedDifficulty * selectionHeight, 20, 20);
+        canvasContext.stroke();
     }
 
     function attachMouseListeners(){
@@ -175,10 +179,9 @@ function GameEngine() {
                     canvasElement.mozRequestPointerLock ||
                     canvasElement.webkitRequestPointerLock;
                 canvasElement.requestPointerLock();
-
                 isInMouseMode = true;
                 if (isGameInProgress)
-                    playerEngine.setupControlsForMouseMode();
+                    setupControlsForMouseMode();
 
                 //Allow unlocking out of mouse mode
                 document.onpointerlockchange = function (e) {
@@ -186,13 +189,230 @@ function GameEngine() {
                             && document.mozPointerLockElement !== canvasElement
                             && document.webkitPointerLockElement !== canvasElement) {
                         isInMouseMode = false;
-                        playerEngine.setupControlsForKeyboardMode();
+                        if (isGameInProgress)
+                            setupControlsForKeyboardMode();
                     }
                 }
                 document.onmozpointerlockchange = document.onpointerlockchange;
                 document.onwebkitpointerlockchange = document.onpointerlockchange;
             }
         }
+    }
+
+    function attachKeyboardListeners(isMouseMode) {
+
+        //Key down
+        document.onkeydown = function (keyboardEvent) {
+            if (isGameInProgress) {
+                switch (keyboardEvent.keyCode) {
+                    case 87: //W
+                        playerEngine.tryStartMovingForward();
+                        break;
+                    case 83: //S
+                        playerEngine.tryStartMovingBackwards();
+                        break;
+                    case 65: //A
+                        if (isMouseMode)
+                            playerEngine.tryStartSidesteppingLeft();
+                        else
+                            playerEngine.tryStartTurningLeft();
+                        break;
+                    case 68: //D                                
+                        if (isMouseMode)
+                            playerEngine.tryStartSidesteppingRight();
+                        else
+                            playerEngine.tryStartTurningRight();
+                        break;
+                    case 81: //Q
+                        if (!isMouseMode)
+                            playerEngine.tryStartSidesteppingLeft();
+                        break;
+                    case 69: //E
+                        if (!isMouseMode)
+                            playerEngine.tryStartSidesteppingRight();
+                        break;
+                    case 37: //Right arrow
+                            if (!isMouseMode) {
+                                playerEngine.tryMovePieceRight();
+                            }
+                        break;
+                    case 38: //Up arrow
+                        if (!isMouseMode) {
+                            playerEngine.tryRotatePieceClockwise();
+                        }
+                        break;
+                    case 39: //Left arrow
+                        if (!isMouseMode) {
+                            playerEngine.tryMovePieceLeft();
+                        }
+                        break;
+                    case 40: //Down arrow
+                        if (!isMouseMode)
+                            playerEngine.tryStartDroppingPiece();
+                        break;
+                    case 32: //Space
+                        if (isMouseMode)
+                            playerEngine.tryStartDroppingPiece();
+                }
+            }
+        }
+
+        //Key up
+        document.onkeyup = function (keyboardEvent) {                    
+            if (isGameInProgress) {
+                switch (keyboardEvent.keyCode) {
+                    case 87: //W
+                        playerEngine.tryStopMovingForward();
+                        break;
+                    case 83: //S
+                        playerEngine.tryStopMovingBackwards();
+                        break;
+                    case 65: //A
+                        if (isMouseMode)
+                            playerEngine.tryStopSidesteppingLeft();
+                        else
+                            playerEngine.tryStopTurningLeft();
+                        break;
+                    case 68: //D
+                        if (isMouseMode)
+                            playerEngine.tryStopSidesteppingRight();
+                        else
+                            playerEngine.tryStopTurningRight();
+                        break;
+                    case 81: //Q
+                        if (!isMouseMode)
+                            playerEngine.tryStopSidesteppingLeft();
+                        break;
+                    case 69: //E
+                        if (!isMouseMode)
+                            playerEngine.tryStopSidesteppingRight();
+                        break;
+                    case 40: //Down arrow
+                        if (!isMouseMode)
+                            playerEngine.tryStopDroppingPiece();
+                        break;
+                    case 32: //Space
+                        if (isMouseMode)
+                            playerEngine.tryStopDroppingPiece();
+                }
+            }                    
+        }
+    }
+
+    function attachGamepadListeners() {
+        window.addEventListener("gamepadconnected", function(e){
+            console.log('connectedGamepad');
+
+            var gamepadButtonCheckerInterval = setInterval(function(){
+                var gamepad = navigator.getGamepads()[0]; 
+
+                var horizontalMovement = gamepad.axes[0];
+                var forwardMovement = gamepad.axes[1];
+                var horizontalView = gamepad.axes[2];
+                var verticalView = gamepad.axes[3];
+
+                if(forwardMovement < -0.5){
+                    playerEngine.tryStartMovingForward();
+                }
+                if(forwardMovement > 0.5){
+                    playerEngine.tryStartMovingBackwards();
+                }
+                if(forwardMovement > -0.5 && forwardMovement < 0.5){
+                    playerEngine.tryStopMovingForward();
+                    playerEngine.tryStopMovingBackwards();
+                }
+
+                if(horizontalMovement < -0.5){
+                    playerEngine.tryStartSidesteppingLeft();
+                }
+                if(horizontalMovement > 0.5){
+                    playerEngine.tryStartSidesteppingRight();
+                }
+                if(horizontalMovement > -0.5 && horizontalMovement < 0.5){
+                    playerEngine.tryStopSidesteppingLeft();
+                    playerEngine.tryStopSidesteppingRight();
+                }
+
+                if(horizontalView < -0.5){
+                    playerEngine.tryStartTurningLeft();
+                }
+                if(horizontalView > 0.5){
+                    playerEngine.tryStartTurningRight();
+                }
+                if(horizontalView > -0.5 && horizontalView < 0.5){
+                    playerEngine.tryStopTurningLeft();
+                    playerEngine.tryStopTurningRight();
+                }
+
+                if(gamepad.buttons[0].pressed){ //button 1
+                    playerEngine.tryPullPiece();       
+                    console.log('button 1');
+                }
+                if(gamepad.buttons[1].pressed){ //button 2                    
+                    console.log('button 2');
+                }
+
+            }, 30); //millisecond interval for listener
+
+        })
+    }
+
+    function setupControlsForMouseMode() {
+
+        //Bind keyboard controls for mouse mode
+        attachKeyboardListeners(true);
+
+        //Mouse look
+        document.onmousemove = function (e) {
+            if (isGameInProgress) {                    
+                playerEngine.tryTurnLeft(MOUSE_SENSITIVITY * -e.movementX);
+            }
+        };  
+
+        //Mouse click
+        document.onmousedown = function (e) {
+            if (isGameInProgress) {
+                switch (e.button) {
+                    case 0: //Left click
+                        if(e.ctrlKey)
+                            playerEngine.tryRotatePieceCounterClockwise();
+                        else
+                            playerEngine.tryPullPiece();                            
+                        break;
+                    case 1: //Middle button
+                        playerEngine.tryStartDroppingPiece();
+                        break;
+                    case 2: //Right click
+                        if(e.ctrlKey)
+                            playerEngine.tryRotatePieceClockwise();
+                        else
+                            playerEngine.tryPushPiece();
+                        break;
+                }  
+            }
+        }
+
+        //Mouse unclick
+        document.onmouseup = function (e) {
+            playerEngine.tryStopDroppingPiece();
+        };
+
+        //Disable browser context menu
+        document.oncontextmenu = function (e) {
+            e.preventDefault();
+        };
+    };
+
+    function setupControlsForKeyboardMode() {
+
+        //Bind keyboard for keyboard mode
+        attachKeyboardListeners(false);
+        
+        //Unbind mouse listeners
+        document.onmousemove = null;
+        document.onmousedown = null;
+        document.onmouseup = null;
+        document.oncontextmenu = null;
     }
         
     function initializeAndGetCanvasContext() {
