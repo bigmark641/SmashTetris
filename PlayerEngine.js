@@ -5,12 +5,16 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
     var self = this;  
 
 
-    //-- PRIVATE MEMBER CONSTANTS --//   
+    //////////////////////////////
+    // PRIVATE MEMBER CONSTANTS //
+    //////////////////////////////  
 
     var TICK_DELAY = 1000 / MAX_FRAMERATE;
     
 
-    //-- PRIVATE MEMBER VARIABLES --//
+    //////////////////////////////
+    // PRIVATE MEMBER VARIABLES //
+    //////////////////////////////
     
     var isMovingForward = false;
     var isMovingBackward = false;
@@ -21,20 +25,11 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
     var isDropping = false;
     var velocityX = 0;
     var velocityY = 0;
-    
-
-    //-- CONSTRUCTOR CODE --//
-    
-    (function () {
-        tetrisEngine.pieceMovedDownCallback = pushPlayerDownIfNecessary;
-        tetrisEngine.playerLostCallback = playerLostTetris;
-        raycastingEngine.worldDrawnCallback = drawPlayerOverlay; 
-        attachGamepadListeners();
-        executeAndScheduleTick(new Date().valueOf());
-    })();
 
 
-    //-- PUBLIC FUNCTIONALITY --//            
+    //////////////////////////
+    // PUBLIC FUNCTIONALITY //            
+    //////////////////////////
 
     self.setupControlsForKeyboardMode = function () {
 
@@ -121,9 +116,24 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
             e.preventDefault();
         };
     }
+    
+
+    //////////////////////
+    // CONSTRUCTOR CODE //
+    //////////////////////
+    
+    (function () {
+        tetrisEngine.pieceMovedDownCallback = pushPlayerDownIfNecessary;
+        tetrisEngine.playerLostCallback = playerLostTetris;
+        raycastingEngine.worldDrawnCallback = drawPlayerOverlay; 
+        attachGamepadListeners();
+        executeAndScheduleTick(new Date().valueOf());
+    })();
 
 
-    //-- PRIVATE FUNCTIONALITY --//
+    /////////////////////
+    // PRIVATE METHODS //
+    /////////////////////
     
     function executeAndScheduleTick(lastTickTime) {
         if (isGameInProgress) {

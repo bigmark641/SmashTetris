@@ -5,7 +5,9 @@ function TetrisEngine() {
     var self = this;
 
 
-    //-- PRIVATE CONSTANTS --//
+    ///////////////////////
+    // PRIVATE CONSTANTS //
+    ///////////////////////
     
     window.TETRIS_S = {name:"S", 
                     initial: [[0,2,2],
@@ -127,7 +129,9 @@ function TetrisEngine() {
                     ];
 
 
-    //-- PRIVATE MEMBER VARIABLES --//
+    //////////////////////////////
+    // PRIVATE MEMBER VARIABLES //
+    //////////////////////////////
 
     var lastTickIndex = 0;
     var tickDelay = TETRIS_STARTING_TICK_SPEED_MILLISECONDS;
@@ -139,7 +143,10 @@ function TetrisEngine() {
     var nextTetrisBlock;
     var scoreBonus = 0;
 
-    //-- PUBLIC METHODS --//
+
+    //////////////////////////
+    // PUBLIC FUNCTIONALITY //
+    //////////////////////////
 
     self.getNumberOfLines = function () {
         return numberOfLines;
@@ -315,7 +322,9 @@ function TetrisEngine() {
     self.playerLostCallback = null;
 
 
-    //-- CONSTRUCTOR CODE --//
+    //////////////////////
+    // CONSTRUCTOR CODE //
+    //////////////////////
 
     (function () {
         nextTetrisBlock = TETRIS_PIECES[Math.floor(Math.random()*(TETRIS_PIECES.length))];

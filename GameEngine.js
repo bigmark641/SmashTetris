@@ -5,13 +5,26 @@ function GameEngine() {
     var self = this; 
 
 
-    //-- PRIVATE MEMBER VARIABLES --//
+    //////////////////////////////
+    // PRIVATE MEMBER CONSTANTS //
+    //////////////////////////////
+
+    window.DIFFICULTY_EASY = 0;
+    window.DIFFICULTY_MEDIUM = 1;
+    window.DIFFICULTY_HARD = 2;
+
+
+    //////////////////////////////
+    // PRIVATE MEMBER VARIABLES //
+    //////////////////////////////
 
     var playerEngine;
     var isMouseMode = false;
 
 
-    //-- CONSTRUCTOR CODE --//
+    //////////////////////
+    // CONSTRUCTOR CODE //
+    //////////////////////
 
     (function () {        
         overrideConfigConstants()
@@ -49,7 +62,9 @@ function GameEngine() {
     })();
 
 
-    //-- PRIVATE FUNCTIONALITY --//
+    /////////////////////
+    // PRIVATE METHODS //
+    /////////////////////
 
     function overrideConfigConstants() {
         var callback;

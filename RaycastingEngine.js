@@ -5,7 +5,9 @@ function RaycastingEngine(drawMinimapParam, drawPlayerOnMinimapParam) {
     var self = this;
 
 
-    //-- PRIVATE MEMBER CONSTANTS --//   
+    //////////////////////////////
+    // PRIVATE MEMBER CONSTANTS //   
+    //////////////////////////////
 
     var TICK_DELAY = 1000 / MAX_FRAMERATE;  
     var VERTICAL_WALL_COLORS = WALL_COLORS.map(function (color) { return shadeColor(color, WALL_SHADING_PERCENT); });   
@@ -16,13 +18,17 @@ function RaycastingEngine(drawMinimapParam, drawPlayerOnMinimapParam) {
     var VIEWPORT_DIST = Math.tan(HALF_VIEWPORT_ANGLE_RADIANS) * .5;
 
 
-    //-- PRIVATE MEMBER VARIABLES --//
+    //////////////////////////////
+    // PRIVATE MEMBER VARIABLES //
+    //////////////////////////////
 
     var drawMinimap = drawMinimapParam;
     var drawPlayerOnMinimap = drawPlayerOnMinimapParam;
 
 
-    //-- PUBLIC METHODS --//
+    //////////////////////////
+    // PUBLIC FUNCTIONALITY //
+    //////////////////////////
 
     self.getWallType = function (angle) {
         var firstHit = getFirstHit(angle);
@@ -99,14 +105,18 @@ function RaycastingEngine(drawMinimapParam, drawPlayerOnMinimapParam) {
     self.worldDrawnCallback = null;
 
 
-    //-- CONSTRUCTOR CODE --//
+    //////////////////////
+    // CONSTRUCTOR CODE //
+    //////////////////////
 
     (function () {
         executeAndScheduleTick(new Date().valueOf());
     })();
 
 
-    //-- PRIVATE METHODS --//
+    /////////////////////
+    // PRIVATE METHODS //
+    /////////////////////
     
     function executeAndScheduleTick(lastTickTime) {
         
