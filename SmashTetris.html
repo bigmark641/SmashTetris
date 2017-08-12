@@ -41,6 +41,9 @@
         window.WALL_TYPE_ARENA = 1;
         window.WALL_TYPE_PIECE_ACTIVE = 2;
         window.WALL_TYPE_PIECE_INACTIVE = 3;
+        window.DIFFICULTY_EASY = 0;
+        window.DIFFICULTY_MEDIUM = 1;
+        window.DIFFICULTY_HARD = 2;
         window.CONFIG_VALUE_WAIT_TIME_MILLISECONDS = 1000;
         window.TETRIS_S = {name:"S", 
                         initial: [[0,2,2],
@@ -205,15 +208,23 @@
             overrideConfigConstants()
                 .then(function () {
 
-                    //Set initial position
-                    playerX = PLAYER_STARTING_X;
-                    playerY = PLAYER_STARTING_Y;
-                    playerA = PLAYER_STARTING_ANGLE_DEGREES * 2 * Math.PI / 360;
+                    //Get difficulty
+                    getDifficulty()
+                        .then(function (result) {
+                            var difficulty = result;
+                            var drawMinimap = difficulty <= DIFFICULTY_MEDIUM;
+                            var drawPlayerOnMinimap = difficulty <= DIFFICULTY_EASY;
 
-                    //Start engine
-                    var raycastingEngine = new RaycastingEngine();
-                    var tetrisEngine = new TetrisEngine();
-                    var playerEngine = new PlayerEngine(raycastingEngine, tetrisEngine);
+                            //Set initial position
+                            playerX = PLAYER_STARTING_X;
+                            playerY = PLAYER_STARTING_Y;
+                            playerA = PLAYER_STARTING_ANGLE_DEGREES * 2 * Math.PI / 360;
+
+                            //Start engine
+                            var raycastingEngine = new RaycastingEngine(drawMinimap, drawPlayerOnMinimap);
+                            var tetrisEngine = new TetrisEngine();
+                            var playerEngine = new PlayerEngine(raycastingEngine, tetrisEngine);
+                        });
                 });
         })();
 
@@ -406,14 +417,11 @@
                 handleSmashIfNecessary();
             }
 
-            function pushPlayerRightIfNecessary() {    
-                console.log("Before: PlayerX:" + playerX + " PlayerY:" + playerY);          
+            function pushPlayerRightIfNecessary() {             
                 if (Math.floor(playerY) !== playerY) {
                     if (       world[Math.floor(playerY)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE
                             || world[Math.floor(playerY)][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE)
                         playerX = Math.ceil(playerX + PLAYER_PUSHED_BUFFER) + PLAYER_PUSHED_BUFFER;
-                    else
-                        console.log("In else 1");
                 }
                 else if (Math.floor(playerY) === playerY) {
                     if (       world[Math.floor(playerY)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE
@@ -421,12 +429,7 @@
                             || world[Math.floor(playerY)][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE
                             || world[Math.floor(playerY) - 1][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE)
                         playerX = Math.ceil(playerX + PLAYER_PUSHED_BUFFER) + PLAYER_PUSHED_BUFFER;
-                    else
-                        console.log("In else 2");
                 }
-                else
-                    console.log("In else 3");
-                console.log("After: PlayerX:" + playerX + " PlayerY:" + playerY);
                 handleSmashIfNecessary();
             }
 
@@ -531,7 +534,7 @@
                 isGameInProgress = false;            
             }
 
-            function drawPlayerOverlay (canvasContext) {
+            function drawPlayerOverlay(canvasContext) {
 
                 //Draw crosshairs
                 raycastingEngine.drawLine(canvasContext, VIEWPORT_WIDTH_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2 - VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_WIDTH_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2 + VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_CROSSHAIR_COLOR);
@@ -605,12 +608,11 @@
 
                         //Mouse click
                         document.onmousedown = function (e) {
-                            //console.log(e); --just removing this to unclutter the console log. -af
                             if (isGameInProgress) {
                                 if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE){
                                     switch (e.button) {
-                                        case 0: //left click
-                                            if(e.ctrlKey){ //ctrl key determines weapon type (move or rotate);
+                                        case 0: //Left click
+                                            if(e.ctrlKey){ //Holding ctrl
                                                 tetrisEngine.rotate(1);
                                                 pushPlayerToClosestAdjacentIfNecessary();
                                             }
@@ -628,11 +630,11 @@
                                             }
                                             
                                             break;
-                                        case 1: //middle button
+                                        case 1: //Middle button
                                             isDropping = true;
                                             break;
-                                        case 2: //right
-                                            if(e.ctrlKey){ //ctrl key determines weapon type (move or rotate);
+                                        case 2: //Right click
+                                            if(e.ctrlKey){ //Holding ctrl
                                                 tetrisEngine.rotate(-1);
                                                 pushPlayerToClosestAdjacentIfNecessary();
                                             }
@@ -879,23 +881,25 @@
         // Raycasting engine //
         ///////////////////////
 
-        function RaycastingEngine() {
+        function RaycastingEngine(drawMinimapParam, drawPlayerOnMinimapParam) {
             var self = this;
 
 
             //-- PRIVATE MEMBER CONSTANTS --//   
 
             var TICK_DELAY = 1000 / MAX_FRAMERATE;  
-
-
-            //-- PRIVATE MEMBER CONSTANTS --//
-
             var VERTICAL_WALL_COLORS = WALL_COLORS.map(function (color) { return shadeColor(color, WALL_SHADING_PERCENT); });   
             var VERTICAL_WALL_COLORS_FACING = WALL_COLORS_FACING.map(function (color) { return shadeColor(color, WALL_SHADING_PERCENT); });   
             var WORLD_LENGTH_X = world[0].length;
             var WORLD_LENGTH_Y = world.length;
             var HALF_VIEWPORT_ANGLE_RADIANS = (VIEWPORT_WIDTH_DEGREES - 180) * Math.PI / -360;
             var VIEWPORT_DIST = Math.tan(HALF_VIEWPORT_ANGLE_RADIANS) * .5;
+
+
+            //-- PRIVATE MEMBER VARIABLES --//
+
+            var drawMinimap = drawMinimapParam;
+            var drawPlayerOnMinimap = drawPlayerOnMinimapParam;
 
 
             //-- PUBLIC METHODS --//
@@ -996,15 +1000,6 @@
                 //Draw
                 drawScreen(canvasContext);
             }
-            
-            function initializeAndGetCanvasContext() {
-                var canvas = document.getElementById("canvas");
-                canvas.setAttribute("width", VIEWPORT_WIDTH_PIXELS);
-                canvas.setAttribute("height", VIEWPORT_HEIGHT_PIXELS);
-                var context = canvas.getContext("2d");
-                context.lineWidth = COLUMN_WIDTH_PIXELS;
-                return context;
-            }
 
             function drawScreen(canvasContext) {
                 var facingWallType = self.getWallType(playerA);
@@ -1039,25 +1034,29 @@
                 }                    
 
                 //Draw overhead map
-                for (var row = 0; row < world.length; row++) {
-                    for (var col = 0; col < world[0].length; col++) {
-                        var color = world[row][col] === 0 ? "#FFFFFF" : WALL_COLORS[world[row][col] - 1];
-                        canvasContext.fillStyle = color;
-                        canvasContext.fillRect(col * 10, VIEWPORT_HEIGHT_PIXELS - row * 10 - 10, 10, 10);
+                if (drawMinimap) {
+                    for (var row = 0; row < world.length; row++) {
+                        for (var col = 0; col < world[0].length; col++) {
+                            var color = world[row][col] === 0 ? "#FFFFFF" : WALL_COLORS[world[row][col] - 1];
+                            canvasContext.fillStyle = color;
+                            canvasContext.fillRect(col * 10, VIEWPORT_HEIGHT_PIXELS - row * 10 - 10, 10, 10);
+                            canvasContext.stroke();
+                        }
+                    }
+                    if (drawPlayerOnMinimap) {
+                        canvasContext.fillStyle = "#000000";
+                        canvasContext.fillRect(playerX * 10 - 1, VIEWPORT_HEIGHT_PIXELS - playerY * 10 - 1, 3, 3);
                         canvasContext.stroke();
+                        var leftRayA = playerA + Math.atan(.5 / VIEWPORT_DIST);
+                        var leftRayX = playerX + 3 * Math.cos(leftRayA);
+                        var leftRayY = playerY + 3 * Math.sin(leftRayA);
+                        self.drawLine(canvasContext, playerX * 10, VIEWPORT_HEIGHT_PIXELS - playerY * 10, leftRayX * 10, VIEWPORT_HEIGHT_PIXELS - leftRayY * 10, "#BBBBBB");
+                        var rightRayA = playerA + Math.atan(-.5 / VIEWPORT_DIST);
+                        var rightRayX = playerX + 3 * Math.cos(rightRayA);
+                        var rightRayY = playerY + 3 * Math.sin(rightRayA);
+                        self.drawLine(canvasContext, playerX * 10, VIEWPORT_HEIGHT_PIXELS - playerY * 10, rightRayX * 10, VIEWPORT_HEIGHT_PIXELS - rightRayY * 10, "#BBBBBB");
                     }
                 }
-                canvasContext.fillStyle = "#000000";
-                canvasContext.fillRect(playerX * 10 - 1, VIEWPORT_HEIGHT_PIXELS - playerY * 10 - 1, 3, 3);
-                canvasContext.stroke();
-                var leftRayA = playerA + Math.atan(.5 / VIEWPORT_DIST);
-                var leftRayX = playerX + 3 * Math.cos(leftRayA);
-                var leftRayY = playerY + 3 * Math.sin(leftRayA);
-                self.drawLine(canvasContext, playerX * 10, VIEWPORT_HEIGHT_PIXELS - playerY * 10, leftRayX * 10, VIEWPORT_HEIGHT_PIXELS - leftRayY * 10, "#BBBBBB");
-                var rightRayA = playerA + Math.atan(-.5 / VIEWPORT_DIST);
-                var rightRayX = playerX + 3 * Math.cos(rightRayA);
-                var rightRayY = playerY + 3 * Math.sin(rightRayA);
-                self.drawLine(canvasContext, playerX * 10, VIEWPORT_HEIGHT_PIXELS - playerY * 10, rightRayX * 10, VIEWPORT_HEIGHT_PIXELS - rightRayY * 10, "#BBBBBB");
              
                 if (self.worldDrawnCallback !== null)
                     self.worldDrawnCallback(canvasContext);
@@ -1627,6 +1626,77 @@
             return {then: function (promiseCallback) {
                 callback = promiseCallback;
             }};
+        }        
+
+        function getDifficulty() {
+            var callback;
+            var selectedDifficulty = DIFFICULTY_EASY;
+            
+            //Draw prompt
+            var canvasContext = initializeAndGetCanvasContext();   
+            drawDifficultyPrompt();
+
+            //Handle user selection
+            document.onkeydown = function (keyboardEvent) {
+                switch (keyboardEvent.keyCode) {
+                    case 38: //Up arrow
+                        selectedDifficulty--;
+                        if (selectedDifficulty < DIFFICULTY_EASY)
+                            selectedDifficulty += 1 + DIFFICULTY_HARD - DIFFICULTY_EASY;
+                        drawDifficultyPrompt();
+                        break;
+                    case 40: //Down arrow
+                        selectedDifficulty++;
+                        if (selectedDifficulty > DIFFICULTY_HARD)
+                            selectedDifficulty-= 1 + DIFFICULTY_HARD - DIFFICULTY_EASY;
+                        drawDifficultyPrompt();
+                        break;
+                    case 13: //Enter
+                        callback(selectedDifficulty);
+                        break;
+                }
+            }
+
+            //Return promise
+            return {then: function (promiseCallback) {
+                callback = promiseCallback;
+            }};         
+
+            function drawDifficultyPrompt() {
+                var selectionHeight = 120;
+
+                //Clear
+                canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+
+                //Draw text
+                canvasContext.fillStyle = "black";
+                canvasContext.font = "bold 64px Arial";
+                canvasContext.fillText("Choose difficulty:", (VIEWPORT_WIDTH_PIXELS / 2) - 300, (VIEWPORT_HEIGHT_PIXELS / 2) -230);
+                canvasContext.fillText("Easy", (VIEWPORT_WIDTH_PIXELS / 2) - 150, (VIEWPORT_HEIGHT_PIXELS / 2) - 60 + DIFFICULTY_EASY * selectionHeight);
+                canvasContext.fillText("Medium", (VIEWPORT_WIDTH_PIXELS / 2) - 150, (VIEWPORT_HEIGHT_PIXELS / 2) - 60 + DIFFICULTY_MEDIUM * selectionHeight);
+                canvasContext.fillText("Hard", (VIEWPORT_WIDTH_PIXELS / 2) - 150, (VIEWPORT_HEIGHT_PIXELS / 2) - 60 + DIFFICULTY_HARD * selectionHeight);
+
+                //Draw selection
+                canvasContext.fillStyle = WALL_COLORS[WALL_TYPE_PIECE_ACTIVE - 1];
+                canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) - 173, (VIEWPORT_HEIGHT_PIXELS / 2) -135 + selectedDifficulty * selectionHeight, 60, 20);
+                canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) - 173, (VIEWPORT_HEIGHT_PIXELS / 2) -115 + selectedDifficulty * selectionHeight, 20, 20);
+                canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) - 173, (VIEWPORT_HEIGHT_PIXELS / 2) -50 + selectedDifficulty * selectionHeight, 60, 20);
+                canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) - 173, (VIEWPORT_HEIGHT_PIXELS / 2) -70 + selectedDifficulty * selectionHeight, 20, 20);
+                canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) + 57, (VIEWPORT_HEIGHT_PIXELS / 2) -135 + selectedDifficulty * selectionHeight, 60, 20);
+                canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) + 97, (VIEWPORT_HEIGHT_PIXELS / 2) -115 + selectedDifficulty * selectionHeight, 20, 20);
+                canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) + 57, (VIEWPORT_HEIGHT_PIXELS / 2) -50 + selectedDifficulty * selectionHeight, 60, 20);
+                canvasContext.fillRect((VIEWPORT_WIDTH_PIXELS / 2) + 97, (VIEWPORT_HEIGHT_PIXELS / 2) -70 + selectedDifficulty * selectionHeight, 20, 20);
+                canvasContext.stroke();
+            }
+        }
+            
+        function initializeAndGetCanvasContext() {
+            var canvas = document.getElementById("canvas");
+            canvas.setAttribute("width", VIEWPORT_WIDTH_PIXELS);
+            canvas.setAttribute("height", VIEWPORT_HEIGHT_PIXELS);
+            var context = canvas.getContext("2d");
+            context.lineWidth = COLUMN_WIDTH_PIXELS;
+            return context;
         }
     </script>
 </body>
