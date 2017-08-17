@@ -40,12 +40,12 @@
         window.TETRIS_STARTING_LEVEL = 0;                      //The initial level of the tetris engine
         window.TETRIS_SPEED_PER_LEVEL_MILLISECONDS = 100;      //How much the tetris tick speed decreases each level
         window.TETRIS_DROP_TICK_SPEED_MILLISECONDS = 10;       //The tetris tick speed when pieces are dropping
-        window.PLAYER_PUSHED_BUFFER = .001;
-        window.WALL_TYPE_NONE = 0;
-        window.WALL_TYPE_ARENA = 1;
-        window.WALL_TYPE_PIECE_ACTIVE = 2;
-        window.WALL_TYPE_PIECE_INACTIVE = 3;
-        window.CONFIG_VALUE_WAIT_TIME_MILLISECONDS = 1000;
+        window.PLAYER_PUSHED_BUFFER = .001;                    //How close a player can be to a wall
+        window.WALL_TYPE_NONE = 0;                             //Empty space in the world array
+        window.WALL_TYPE_ARENA = 1;                            //Outer wall block in the world array
+        window.WALL_TYPE_PIECE_ACTIVE = 2;                     //Active tetris block in the world array
+        window.WALL_TYPE_PIECE_INACTIVE = 3;                   //Inactive tetris block in the world array
+        window.CONFIG_VALUE_WAIT_TIME_MILLISECONDS = 1000;     //How long the page will wait for config values from the parent page
 
 
         //////////////////////
