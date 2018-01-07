@@ -36,6 +36,7 @@ function GameEngine() {
                 canvasContext = initializeAndGetCanvasContext();  
 
                 attachMouseListeners();
+                attachGamepadListeners();
 
                 //Get difficulty from user
                 getDifficultyFromUser()
@@ -296,6 +297,64 @@ function GameEngine() {
                 }
             }                    
         }
+    }
+
+    function attachGamepadListeners() {
+        window.addEventListener("gamepadconnected", function(e){
+            console.log('connectedGamepad');
+
+            var gamepadButtonCheckerInterval = setInterval(function(){
+                var gamepad = navigator.getGamepads()[0]; 
+
+                var horizontalMovement = gamepad.axes[0];
+                var forwardMovement = gamepad.axes[1];
+                var horizontalView = gamepad.axes[2];
+                var verticalView = gamepad.axes[3];
+
+                if(forwardMovement < -0.5){
+                    playerEngine.tryStartMovingForward();
+                }
+                if(forwardMovement > 0.5){
+                    playerEngine.tryStartMovingBackwards();
+                }
+                if(forwardMovement > -0.5 && forwardMovement < 0.5){
+                    playerEngine.tryStopMovingForward();
+                    playerEngine.tryStopMovingBackwards();
+                }
+
+                if(horizontalMovement < -0.5){
+                    playerEngine.tryStartSidesteppingLeft();
+                }
+                if(horizontalMovement > 0.5){
+                    playerEngine.tryStartSidesteppingRight();
+                }
+                if(horizontalMovement > -0.5 && horizontalMovement < 0.5){
+                    playerEngine.tryStopSidesteppingLeft();
+                    playerEngine.tryStopSidesteppingRight();
+                }
+
+                if(horizontalView < -0.5){
+                    playerEngine.tryStartTurningLeft();
+                }
+                if(horizontalView > 0.5){
+                    playerEngine.tryStartTurningRight();
+                }
+                if(horizontalView > -0.5 && horizontalView < 0.5){
+                    playerEngine.tryStopTurningLeft();
+                    playerEngine.tryStopTurningRight();
+                }
+
+                if(gamepad.buttons[0].pressed){ //button 1
+                    playerEngine.tryPullPiece();       
+                    console.log('button 1');
+                }
+                if(gamepad.buttons[1].pressed){ //button 2                    
+                    console.log('button 2');
+                }
+
+            }, 30); //millisecond interval for listener
+
+        })
     }
 
     function setupControlsForMouseMode() {
