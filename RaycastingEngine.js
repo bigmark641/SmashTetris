@@ -1,5 +1,13 @@
 "use strict";
 
+/* 
+ * The RaycastingEngine is intended to contain logic used to draw the virtual
+ * world.
+ * 
+ * It also exposes an interface to "cast a ray" which is also used for wall
+ * hit detection.
+*/
+
 
 function RaycastingEngine(drawMinimapParam, drawPlayerOnMinimapParam) {
     var self = this;

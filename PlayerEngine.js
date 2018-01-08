@@ -1,5 +1,14 @@
 "use strict";
 
+/* 
+ * The PlayerEngine is intended to contain logic relating to the things that
+ * the character can do, such as: walking, turning, pushing/rotating tetris
+ * pieces, viewing their overlay, and getting smashed.
+ * 
+ * Its public interface includes all the actions the user can do and interacts
+ * with the TetrisEngine as necessary.
+*/
+
 
 function PlayerEngine(raycastingEngine, tetrisEngine) {
     var self = this;  
