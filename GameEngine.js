@@ -1,5 +1,14 @@
 "use strict";
 
+/* 
+ * The GameEngine is intended to contain logic relating to the shell of
+ * the game, such as: menus, configuration, keyboard, mouse, and browser
+ * interfaces.
+ * 
+ * It initializes the game and passes all of the user's actions down to the
+ * PlayerEngine, which takes care of the rest.
+*/
+
 
 function GameEngine() {
     var self = this; 

@@ -1,5 +1,12 @@
 "use strict";
 
+/* 
+ * The TetrisEngine is intended to contain a standalone tetris game.
+ * 
+ * Even though we are using it in an FPS manner, it could just as easily be
+ * used for a 2D style game as well.
+*/
+
 
 function TetrisEngine() {
     var self = this;
