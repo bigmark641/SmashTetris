@@ -45,8 +45,13 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
         normalizePlayerA();
     };
 
+    self.tryLookUp = function (radians) {
+        playerVerticalA += radians;
+        normalizePlayerVerticalA();
+    };
+
     self.tryPullPiece = function () {
-        if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
+        if (raycastingEngine.getWallType(playerA, playerVerticalA) === WALL_TYPE_PIECE_ACTIVE) {
             if (isFacingRight()) {
                 tetrisEngine.moveLeft();
                 pushPlayerRightIfNecessary();
@@ -59,7 +64,7 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
     };
 
     self.tryPushPiece = function () {
-        if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
+        if (raycastingEngine.getWallType(playerA, playerVerticalA) === WALL_TYPE_PIECE_ACTIVE) {
             if (isFacingRight()) {
                 tetrisEngine.moveRight();
                 pushPlayerRightIfNecessary();
@@ -72,14 +77,14 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
     };
 
     self.tryRotatePieceClockwise = function () {        
-        if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
+        if (raycastingEngine.getWallType(playerA, playerVerticalA) === WALL_TYPE_PIECE_ACTIVE) {
             tetrisEngine.rotate(-1);
             pushPlayerToClosestAdjacentIfNecessary();
         }
     };
 
     self.tryRotatePieceCounterClockwise = function () {    
-        if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {    
+        if (raycastingEngine.getWallType(playerA, playerVerticalA) === WALL_TYPE_PIECE_ACTIVE) {    
             tetrisEngine.rotate(1);
             pushPlayerToClosestAdjacentIfNecessary();
         }
@@ -142,7 +147,7 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
     };
 
     self.tryMovePieceLeft = function () {
-        if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
+        if (raycastingEngine.getWallType(playerA, playerVerticalA) === WALL_TYPE_PIECE_ACTIVE) {
             if (isFacingUp()) {
                 tetrisEngine.moveLeft();
                 pushPlayerLeftIfNecessary();
@@ -155,7 +160,7 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
     };
 
     self.tryMovePieceRight = function () {
-        if (raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE) {
+        if (raycastingEngine.getWallType(playerA, playerVerticalA) === WALL_TYPE_PIECE_ACTIVE) {
             if (isFacingUp()) {
                 tetrisEngine.moveRight();
                 pushPlayerRightIfNecessary();
@@ -201,7 +206,7 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
     }
 
     function dropPieceIfNecessary() {
-        if (isDropping && raycastingEngine.getWallType(playerA) === WALL_TYPE_PIECE_ACTIVE)
+        if (isDropping && raycastingEngine.getWallType(playerA, playerVerticalA) === WALL_TYPE_PIECE_ACTIVE)
             tetrisEngine.drop();
         else
             tetrisEngine.cancelDrop();
@@ -495,5 +500,12 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
         if (playerA < 0)
             playerA += 2 * Math.PI;
         playerA %= 2 * Math.PI;
+    }
+
+    function normalizePlayerVerticalA () {
+        if (playerVerticalA < -Math.PI)
+            playerVerticalA = -Math.PI;
+        else if (playerVerticalA > Math.PI)
+            playerVerticalA = Math.PI;
     }
 }
