@@ -163,11 +163,24 @@ function RaycastingEngine(drawMinimapParam, drawPlayerOnMinimapParam) {
                 wallHeightOnViewport = WALL_HEIGHT * VIEWPORT_HEIGHT_PIXELS / distFromViewport;
             else
                 wallHeightOnViewport = VIEWPORT_HEIGHT_PIXELS;
-            if (wallHeightOnViewport > VIEWPORT_HEIGHT_PIXELS)
-                wallHeightOnViewport = VIEWPORT_HEIGHT_PIXELS;
+
+            //Get wall position
+            var wallTop = (VIEWPORT_HEIGHT_PIXELS - wallHeightOnViewport) / 2;
+            var wallBottom = VIEWPORT_HEIGHT_PIXELS - wallTop;
+            wallTop += playerVerticalA * VIEWPORT_HEIGHT_PIXELS;
+            wallBottom += playerVerticalA * VIEWPORT_HEIGHT_PIXELS;
+
+            if (wallTop > VIEWPORT_HEIGHT_PIXELS)
+                wallTop = VIEWPORT_HEIGHT_PIXELS;
+            if (wallBottom > VIEWPORT_HEIGHT_PIXELS)
+                wallBottom = VIEWPORT_HEIGHT_PIXELS;
+            if (wallTop < 0)
+                wallTop = 0;
+            if (wallBottom < 0)
+                wallBottom = 0;
 
             //Draw column
-            drawColumn(col, wallHeightOnViewport, firstHitWallType, isFirstHitHorizontalWall, distFromViewport * WALL_DISTANCE_SHADE, facingWallType);
+            drawColumn(col, wallTop, wallBottom, firstHitWallType, isFirstHitHorizontalWall, distFromViewport * WALL_DISTANCE_SHADE, facingWallType);
         }                    
 
         //Draw overhead map
@@ -206,11 +219,7 @@ function RaycastingEngine(drawMinimapParam, drawPlayerOnMinimapParam) {
         return isFirstHitHorizontalWall ? hitY : hitX;
     }
 
-    function drawColumn(col, wallHeight, wallType, isHorizontalWall, wallShade, facingWallType) {
-
-        //Get wall position
-        var wallTop = (VIEWPORT_HEIGHT_PIXELS - wallHeight) / 2;
-        var wallBottom = VIEWPORT_HEIGHT_PIXELS - wallTop;
+    function drawColumn(col, wallTop, wallBottom, wallType, isHorizontalWall, wallShade, facingWallType) {
 
         //Get wall color
         var wallColor;
