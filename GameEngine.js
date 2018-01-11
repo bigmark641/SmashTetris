@@ -58,6 +58,7 @@ function GameEngine() {
                         playerX = PLAYER_STARTING_X;
                         playerY = PLAYER_STARTING_Y;
                         playerA = PLAYER_STARTING_ANGLE_DEGREES * 2 * Math.PI / 360;
+                        playerVerticalA = 0;
 
                         //Start engine
                         var raycastingEngine = new RaycastingEngine(drawMinimap, drawPlayerOnMinimap);
@@ -316,6 +317,7 @@ function GameEngine() {
         document.onmousemove = function (e) {
             if (isGameInProgress) {                    
                 playerEngine.tryTurnLeft(MOUSE_SENSITIVITY * -e.movementX);
+                playerEngine.tryLookUp(MOUSE_SENSITIVITY * -e.movementY);
             }
         };  
 
