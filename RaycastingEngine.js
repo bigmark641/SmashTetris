@@ -38,43 +38,16 @@ function RaycastingEngine(drawMinimapParam, drawPlayerOnMinimapParam) {
     // PUBLIC FUNCTIONALITY //
     //////////////////////////
 
-    self.getWallType = function (playerA, playerVerticalA) {
+    self.getWallType = function (horizontalA, verticalA) {
 
-        //Get wall hit
-        var firstHit = getFirstHit(playerA)
-        var firstHitDist = firstHit.dist;
-        var facingWallType = firstHit.wallType;
-        var isFirstHitHorizontalWall = firstHit.isHorizontalWall;
+        //Get drawing values at angle
+        var columnDrawingValues = getColumnDrawingValues(horizontalA - playerA, verticalA);
 
-        //Correct distortion due to flat viewport
-        var distFromViewport = firstHitDist;
+        //Is "straight ahead" above or below wall?
+        if (columnDrawingValues.wallTopOnViewport > VIEWPORT_HEIGHT_PIXELS / 2 || columnDrawingValues.wallBottomOnViewport < VIEWPORT_HEIGHT_PIXELS / 2)
+            columnDrawingValues.firstHitWallType = WALL_TYPE_NONE;
 
-        //Get wall height on viewport
-        var wallHeightOnViewport;
-        if (distFromViewport != 0)
-            wallHeightOnViewport = WALL_HEIGHT * VIEWPORT_HEIGHT_PIXELS / distFromViewport;
-        else
-            wallHeightOnViewport = VIEWPORT_HEIGHT_PIXELS;
-
-        //Get wall position on viewport
-        var wallTopOnViewport = (VIEWPORT_HEIGHT_PIXELS - wallHeightOnViewport) / 2;
-        var wallBottomOnViewport = VIEWPORT_HEIGHT_PIXELS - wallTopOnViewport;
-        wallTopOnViewport += playerVerticalA * VIEWPORT_HEIGHT_PIXELS;
-        wallBottomOnViewport += playerVerticalA * VIEWPORT_HEIGHT_PIXELS;
-        if (wallTopOnViewport > VIEWPORT_HEIGHT_PIXELS)
-            wallTopOnViewport = VIEWPORT_HEIGHT_PIXELS;
-        if (wallBottomOnViewport > VIEWPORT_HEIGHT_PIXELS)
-            wallBottomOnViewport = VIEWPORT_HEIGHT_PIXELS;
-        if (wallTopOnViewport < 0)
-            wallTopOnViewport = 0;
-        if (wallBottomOnViewport < 0)
-            wallBottomOnViewport = 0;
-
-        //Is vertical direction pointing away from wall?
-        if (wallTopOnViewport > VIEWPORT_HEIGHT_PIXELS / 2 || wallBottomOnViewport < VIEWPORT_HEIGHT_PIXELS / 2)
-            facingWallType = WALL_TYPE_NONE;
-
-        return facingWallType;
+        return columnDrawingValues.firstHitWallType;
     };
 
     self.getFirstHitForDirection = function (angle, onHorizontalWalls) {
@@ -173,6 +146,52 @@ function RaycastingEngine(drawMinimapParam, drawPlayerOnMinimapParam) {
     }
 
 
+    function getColumnDrawingValues(horizontalAngleRelativeToPlayer, verticalA) {
+
+        //Get angle relative to world
+        var horizontalAngleRelativeToWorld = playerA + horizontalAngleRelativeToPlayer;
+
+        //Get wall hit
+        var firstHit = getFirstHit(horizontalAngleRelativeToWorld)
+        var firstHitDist = firstHit.dist;
+        var firstHitWallType = firstHit.wallType;
+        var isFirstHitHorizontalWall = firstHit.isHorizontalWall;
+
+        //Correct distortion due to flat viewport
+        var distFromViewport = firstHitDist * Math.cos(horizontalAngleRelativeToPlayer);
+
+        //Get wall height on viewport
+        var wallHeightOnViewport;
+        if (distFromViewport != 0)
+            wallHeightOnViewport = WALL_HEIGHT * VIEWPORT_HEIGHT_PIXELS / distFromViewport;
+        else
+            wallHeightOnViewport = VIEWPORT_HEIGHT_PIXELS;
+
+        //Get wall position on viewport
+        var wallTopOnViewport = (VIEWPORT_HEIGHT_PIXELS - wallHeightOnViewport) / 2;
+        var wallBottomOnViewport = VIEWPORT_HEIGHT_PIXELS - wallTopOnViewport;
+        wallTopOnViewport += playerVerticalA * VIEWPORT_HEIGHT_PIXELS;
+        wallBottomOnViewport += playerVerticalA * VIEWPORT_HEIGHT_PIXELS;
+
+        //Fix overflow
+        if (wallTopOnViewport > VIEWPORT_HEIGHT_PIXELS)
+            wallTopOnViewport = VIEWPORT_HEIGHT_PIXELS;
+        if (wallBottomOnViewport > VIEWPORT_HEIGHT_PIXELS)
+            wallBottomOnViewport = VIEWPORT_HEIGHT_PIXELS;
+        if (wallTopOnViewport < 0)
+            wallTopOnViewport = 0;
+        if (wallBottomOnViewport < 0)
+            wallBottomOnViewport = 0;
+
+        //Return object
+        return {
+            firstHitWallType: firstHitWallType,
+            isFirstHitHorizontalWall: isFirstHitHorizontalWall,
+            distFromViewport: distFromViewport,
+            wallTopOnViewport: wallTopOnViewport,
+            wallBottomOnViewport: wallBottomOnViewport
+        };
+    }
 
     function drawScreen() {
         var facingWallType = self.getWallType(playerA, playerVerticalA);
@@ -180,42 +199,12 @@ function RaycastingEngine(drawMinimapParam, drawPlayerOnMinimapParam) {
         //For each viewport column
         for (var col = 0; col < VIEWPORT_WIDTH_PIXELS; col += COLUMN_WIDTH_PIXELS) {
 
-            //Get angle for column
+            //Get coordinates for column
             var angleRelativeToPlayer = Math.atan((.5 - col / VIEWPORT_WIDTH_PIXELS) / VIEWPORT_DIST);
-            var angleRelativeToWorld = playerA + angleRelativeToPlayer;
-
-            //Get wall hit
-            var firstHit = getFirstHit(angleRelativeToWorld)
-            var firstHitDist = firstHit.dist;
-            var firstHitWallType = firstHit.wallType;
-            var isFirstHitHorizontalWall = firstHit.isHorizontalWall;
-
-            //Correct distortion due to flat viewport
-            var distFromViewport = firstHitDist * Math.cos(angleRelativeToPlayer);
-
-            //Get wall height on viewport
-            var wallHeightOnViewport;
-            if (distFromViewport != 0)
-                wallHeightOnViewport = WALL_HEIGHT * VIEWPORT_HEIGHT_PIXELS / distFromViewport;
-            else
-                wallHeightOnViewport = VIEWPORT_HEIGHT_PIXELS;
-
-            //Get wall position on viewport
-            var wallTopOnViewport = (VIEWPORT_HEIGHT_PIXELS - wallHeightOnViewport) / 2;
-            var wallBottomOnViewport = VIEWPORT_HEIGHT_PIXELS - wallTopOnViewport;
-            wallTopOnViewport += playerVerticalA * VIEWPORT_HEIGHT_PIXELS;
-            wallBottomOnViewport += playerVerticalA * VIEWPORT_HEIGHT_PIXELS;
-            if (wallTopOnViewport > VIEWPORT_HEIGHT_PIXELS)
-                wallTopOnViewport = VIEWPORT_HEIGHT_PIXELS;
-            if (wallBottomOnViewport > VIEWPORT_HEIGHT_PIXELS)
-                wallBottomOnViewport = VIEWPORT_HEIGHT_PIXELS;
-            if (wallTopOnViewport < 0)
-                wallTopOnViewport = 0;
-            if (wallBottomOnViewport < 0)
-                wallBottomOnViewport = 0;
+            var columnDrawingValues = getColumnDrawingValues(angleRelativeToPlayer, playerVerticalA);
 
             //Draw column
-            drawColumn(col, wallTopOnViewport, wallBottomOnViewport, firstHitWallType, isFirstHitHorizontalWall, distFromViewport * WALL_DISTANCE_SHADE, facingWallType);
+            drawColumn(col, columnDrawingValues.wallTopOnViewport, columnDrawingValues.wallBottomOnViewport, columnDrawingValues.firstHitWallType, columnDrawingValues.isFirstHitHorizontalWall, columnDrawingValues.distFromViewport * WALL_DISTANCE_SHADE, facingWallType);
         }                    
 
         //Draw overhead map
