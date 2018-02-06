@@ -92,40 +92,9 @@ function TetrisEngine() {
     window.REJECT_HOOK = {
         name: "HOOK",
         initial: [
-            [0, 2, 0],
-            [2, 0, 2],
-            [0, 0, 2]
-        ],
-        rotations: [
-            [
-                [0, 2, 0],
-                [2, 0, 2],
-                [2, 0, 0]
-            ],
-            [
-                [2, 2, 0],
-                [0, 0, 2],
-                [0, 2, 0]
-            ],
-            [
-                [0, 0, 2],
-                [2, 0, 2],
-                [0, 2, 0]
-            ],
-            [
-                [0, 2, 0],
-                [2, 0, 0],
-                [0, 2, 2]
-            ]
-        ]
-    }
-
-    window.REJECT_CROOK = {
-        name: "CROOK",
-        initial: [
-            [0, 2, 0],
-            [2, 0, 2],
-            [2, 0, 0]
+            [0, 0, 2],
+            [2, 0, 2],  
+            [0, 2, 0]
         ],
         rotations: [
             [
@@ -134,9 +103,9 @@ function TetrisEngine() {
                 [0, 0, 2]
             ],
             [
-                [0, 2, 0],
-                [0, 0, 2],
-                [2, 2, 0]
+                [0, 2, 2],
+                [2, 0, 0],
+                [0, 2, 0]
             ],
             [
                 [2, 0, 0],
@@ -144,8 +113,39 @@ function TetrisEngine() {
                 [0, 2, 0]
             ],
             [
-                [0, 2, 2],
+                [0, 2, 0],
+                [0, 0, 2],
+                [2, 2, 0]
+            ]
+        ]
+    }
+
+    window.REJECT_CROOK = {
+        name: "CROOK",
+        initial: [
+            [2, 0, 0],
+            [2, 0, 2],
+            [0, 2, 0]
+        ],
+        rotations: [
+            [
+                [0, 2, 0],
+                [2, 0, 2],
+                [2, 0, 0]
+            ],
+            [
+                [0, 2, 0],
                 [2, 0, 0],
+                [0, 2, 2]
+            ],
+            [
+                [0, 0, 2],
+                [2, 0, 2],
+                [0, 2, 0]
+            ],
+            [
+                [2, 2, 0],
+                [0, 0, 2],
                 [0, 2, 0]
             ]
         ]
@@ -390,9 +390,9 @@ function TetrisEngine() {
     window.TETRIS_PIECES = [
         //window.REJECT_R,
         //window.REJECT_PLUS,
-        window.REJECT_Y,
+        //window.REJECT_Y,
         //window.REJECT_HOOK,
-        //window.REJECT_CROOK,
+        window.REJECT_CROOK,
         // window.REJECT_REVERSEWHEELBARROW,
         // window.REJECT_WHEELBARROW,
         // window.REJECT_DIAGONALDOG,
