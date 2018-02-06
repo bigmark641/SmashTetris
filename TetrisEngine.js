@@ -247,29 +247,29 @@ function TetrisEngine() {
     window.REJECT_WHEELBARROW = {
         name: "WHEELBARROW",
         initial: [
-            [0, 2, 0],
+            [2, 0, 0],
             [0, 2, 2],
-            [2, 0, 0]
+            [0, 2, 0]
         ],
         rotations: [
-            [
-                [0, 2, 0],
-                [2, 2, 0],
-                [0, 0, 2]
-            ],
             [
                 [0, 2, 0],
                 [0, 2, 2],
                 [2, 0, 0]
             ],
             [
-                [2, 0, 0],
-                [0, 2, 2],
-                [0, 2, 0]
+                [0, 2, 0],
+                [2, 2, 0],
+                [0, 0, 2]
             ],
             [
                 [0, 0, 2],
                 [2, 2, 0],
+                [0, 2, 0]
+            ],
+            [
+                [2, 0, 0],
+                [0, 2, 2],
                 [0, 2, 0]
             ]
         ]
@@ -278,20 +278,15 @@ function TetrisEngine() {
     window.REJECT_REVERSEWHEELBARROW = {
         name: "REVERSEWHEELBARROW",
         initial: [
-            [0, 2, 0],
+            [0, 0, 2],
             [2, 2, 0],
-            [0, 0, 2]
+            [0, 2, 0]
         ],
         rotations: [
             [
                 [0, 2, 0],
-                [0, 2, 2],
-                [2, 0, 0]
-            ],
-            [
-                [2, 0, 0],
-                [0, 2, 2],
-                [0, 2, 0]
+                [2, 2, 0],
+                [0, 0, 2]
             ],
             [
                 [0, 0, 2],
@@ -299,9 +294,14 @@ function TetrisEngine() {
                 [0, 2, 0]
             ],
             [
+                [2, 0, 0],
+                [0, 2, 2],
+                [0, 2, 0]
+            ],
+            [
                 [0, 2, 0],
-                [2, 2, 0],
-                [0, 0, 2]
+                [0, 2, 2],
+                [2, 0, 0]
             ]
         ]
     }
@@ -388,16 +388,16 @@ function TetrisEngine() {
 
 
     window.TETRIS_PIECES = [
-        //window.REJECT_R,
-        //window.REJECT_PLUS,
-        //window.REJECT_Y,
-        //window.REJECT_HOOK,
-        //window.REJECT_CROOK,
-        //window.REJECT_UPSTAIRS,
-        //window.REJECT_DOWNSTAIRS,
-        //window.REJECT_DIAGONALDOG,
+        window.REJECT_R,
+        window.REJECT_PLUS,
+        window.REJECT_Y,
+        window.REJECT_HOOK,
+        window.REJECT_CROOK,
+        window.REJECT_UPSTAIRS,
+        window.REJECT_DOWNSTAIRS,
+        window.REJECT_DIAGONALDOG,
         window.REJECT_WHEELBARROW,
-        //window.REJECT_REVERSEWHEELBARROW,
+        window.REJECT_REVERSEWHEELBARROW,
         //window.REJECT_Q,
         //window.REJECT_REVERSEQ,
         //window.REJECT_KING
