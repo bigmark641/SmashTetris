@@ -209,11 +209,13 @@ function RaycastingEngine(drawMinimapParam, drawPlayerOnMinimapParam) {
 
         //Draw overhead map
         if (drawMinimap) {
+            let blockPixelsX = VIEWPORT_WIDTH_PIXELS / 12;
+            let blockPixelxY = VIEWPORT_HEIGHT_PIXELS / 22;
             for (var row = 0; row < world.length; row++) {
                 for (var col = 0; col < world[0].length; col++) {
                     var color = world[row][col] === 0 ? "#FFFFFF" : WALL_COLORS[world[row][col] - 1];
                     canvasContext.fillStyle = color;
-                    canvasContext.fillRect(col * 10, VIEWPORT_HEIGHT_PIXELS - row * 10 - 10, 10, 10);
+                    canvasContext.fillRect(col * blockPixelsX, VIEWPORT_HEIGHT_PIXELS - row * blockPixelxY - blockPixelxY, blockPixelsX, blockPixelxY);
                     canvasContext.stroke();
                 }
             }

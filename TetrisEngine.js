@@ -623,6 +623,7 @@ function TetrisEngine() {
                 updateSpeedIfNecessary();
                 addBlock();
                 scheduleTick(tickDelay);
+                cancelDrop();
             }
             else {
                 movePieceDown();

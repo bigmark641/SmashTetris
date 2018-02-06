@@ -4,15 +4,15 @@
     <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
 </head>
 <body>
-    <iframe name="SmashTetrisFrame" style="border-style: none;" width="902" height="602" src="SmashTetris.html"></iframe><br />
+    <iframe name="SmashTetrisFrame" style="border-style: none;" width="362" height="662" src="SmashTetris.html"></iframe><br />
     <div style="position: fixed; bottom: 0; background-color: #CCCCCC;">
         Click on game to activate mouse controls: Use WASD to walk.  "Shoot" a piece with left/right click to pull/push it, control-click to rotate, and space to drop.<br />
         Press escape to activate keyboard controls: Use WASD to walk.  Q and E sidestep.  "Shoot" a piece with the left and right arrows to move it, up to rotate, and down to drop.<br />        
         <br />
         Click <a onclick="$('form').toggle();" style="text-decoration: underline">here</a> for config/debugging overrides.
         <form action="#" style="display: none">
-            VIEWPORT_WIDTH_PIXELS: <input id="VIEWPORT_WIDTH_PIXELS" value="900" />How many pixels wide the viewport is<br/>
-            VIEWPORT_HEIGHT_PIXELS: <input id="VIEWPORT_HEIGHT_PIXELS" value="600" />How many pixels tall the viewport is<br/>
+            VIEWPORT_WIDTH_PIXELS: <input id="VIEWPORT_WIDTH_PIXELS" value="360" />How many pixels wide the viewport is<br/>
+            VIEWPORT_HEIGHT_PIXELS: <input id="VIEWPORT_HEIGHT_PIXELS" value="660" />How many pixels tall the viewport is<br/>
             VIEWPORT_WIDTH_DEGREES: <input id="VIEWPORT_WIDTH_DEGREES" value="75" />How wide the player can see (between 1 and 179 degrees)<br/>
             COLUMN_WIDTH_PIXELS: <input id="COLUMN_WIDTH_PIXELS" value="1" />How wide each "drawn" line is (1 is highest resolution)<br/>
             MAX_FRAMERATE: <input id="MAX_FRAMERATE" value="45" />The framerate the graphics engine will target<br/>

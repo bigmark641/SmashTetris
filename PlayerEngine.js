@@ -7,11 +7,11 @@
  * 
  * Its public interface includes all the actions the user can do and interacts
  * with the TetrisEngine as necessary.
-*/
+ */
 
 
 function PlayerEngine(raycastingEngine, tetrisEngine) {
-    var self = this;  
+    var self = this;
 
 
     //////////////////////////////
@@ -19,12 +19,12 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
     //////////////////////////////  
 
     var TICK_DELAY = 1000 / MAX_FRAMERATE;
-    
+
 
     //////////////////////////////
     // PRIVATE MEMBER VARIABLES //
     //////////////////////////////
-    
+
     var isMovingForward = false;
     var isMovingBackward = false;
     var isSidesteppingLeft = false;
@@ -55,8 +55,7 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
             if (isFacingRight()) {
                 tetrisEngine.moveLeft();
                 pushPlayerRightIfNecessary();
-            }
-            else {
+            } else {
                 tetrisEngine.moveRight();
                 pushPlayerLeftIfNecessary();
             }
@@ -68,34 +67,43 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
             if (isFacingRight()) {
                 tetrisEngine.moveRight();
                 pushPlayerRightIfNecessary();
-            }
-            else {
+            } else {
                 tetrisEngine.moveLeft();
                 pushPlayerLeftIfNecessary();
             }
         }
     };
 
-    self.tryRotatePieceClockwise = function () {        
+    self.tryRotatePieceClockwise = function () {
         if (raycastingEngine.getWallType(playerA, playerVerticalA) === WALL_TYPE_PIECE_ACTIVE) {
-            tetrisEngine.rotate(-1);
-            pushPlayerToClosestAdjacentIfNecessary();
+            self.rotatePieceClockwise();
         }
     };
 
-    self.tryRotatePieceCounterClockwise = function () {    
-        if (raycastingEngine.getWallType(playerA, playerVerticalA) === WALL_TYPE_PIECE_ACTIVE) {    
-            tetrisEngine.rotate(1);
-            pushPlayerToClosestAdjacentIfNecessary();
+    self.tryRotatePieceCounterClockwise = function () {
+        if (raycastingEngine.getWallType(playerA, playerVerticalA) === WALL_TYPE_PIECE_ACTIVE) {
+            self.rotatePieceClockwise();
         }
     };
 
-    self.tryStartDroppingPiece = function () {
+    self.startDroppingPiece = function () {
+        if (!isDropping)
+            tetrisEngine.drop();
         isDropping = true;
     };
 
-    self.tryStopDroppingPiece = function () {
+    self.stopDroppingPiece = function () {
         isDropping = false;
+    };
+
+    self.rotatePieceClockwise = function () {
+        tetrisEngine.rotate(-1);
+        pushPlayerToClosestAdjacentIfNecessary();
+    };
+
+    self.rotatePieceCounterClockwise = function () {
+        tetrisEngine.rotate(1);
+        pushPlayerToClosestAdjacentIfNecessary();
     };
 
     self.tryStartMovingForward = function () {
@@ -148,35 +156,41 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
 
     self.tryMovePieceLeft = function () {
         if (raycastingEngine.getWallType(playerA, playerVerticalA) === WALL_TYPE_PIECE_ACTIVE) {
-            if (isFacingUp()) {
-                tetrisEngine.moveLeft();
-                pushPlayerLeftIfNecessary();
-            }
-            else {
-                tetrisEngine.moveRight();
-                pushPlayerRightIfNecessary();
-            }
+            self.movePieceLeft();
         }
     };
 
     self.tryMovePieceRight = function () {
         if (raycastingEngine.getWallType(playerA, playerVerticalA) === WALL_TYPE_PIECE_ACTIVE) {
-            if (isFacingUp()) {
-                tetrisEngine.moveRight();
-                pushPlayerRightIfNecessary();
-            }
-            else {
-                tetrisEngine.moveLeft();
-                pushPlayerLeftIfNecessary();
-            }
+            self.movePieceRight();
         }
     };
-    
+
+    self.movePieceLeft = function () {
+        if (isFacingUp()) {
+            tetrisEngine.moveLeft();
+            pushPlayerLeftIfNecessary();
+        } else {
+            tetrisEngine.moveRight();
+            pushPlayerRightIfNecessary();
+        }
+    };
+
+    self.movePieceRight = function () {
+        if (isFacingUp()) {
+            tetrisEngine.moveRight();
+            pushPlayerRightIfNecessary();
+        } else {
+            tetrisEngine.moveLeft();
+            pushPlayerLeftIfNecessary();
+        }
+    };
+
 
     //////////////////////
     // CONSTRUCTOR CODE //
     //////////////////////
-    
+
     (function () {
         tetrisEngine.pieceMovedDownCallback = pushPlayerDownIfNecessary;
         tetrisEngine.playerLostCallback = playerLostTetris;
@@ -188,14 +202,14 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
     /////////////////////
     // PRIVATE METHODS //
     /////////////////////
-    
+
     function executeAndScheduleTick(lastTickTime) {
         if (isGameInProgress) {
 
             //Schedule next tick
             var currentTickTime = new Date().valueOf();
             setTimeout(function () {
-                executeAndScheduleTick(currentTickTime); 
+                executeAndScheduleTick(currentTickTime);
             }, TICK_DELAY);
             var elapsedTime = currentTickTime - lastTickTime;
 
@@ -206,9 +220,7 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
     }
 
     function dropPieceIfNecessary() {
-        if (isDropping && raycastingEngine.getWallType(playerA, playerVerticalA) === WALL_TYPE_PIECE_ACTIVE)
-            tetrisEngine.drop();
-        else
+        if (!isDropping /*&& raycastingEngine.getWallType(playerA, playerVerticalA) === WALL_TYPE_PIECE_ACTIVE*/)
             tetrisEngine.cancelDrop();
     }
 
@@ -226,8 +238,7 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
         if (ratioToDecelerate > 0) {
             velocityX *= ratioToDecelerate;
             velocityY *= ratioToDecelerate;
-        }
-        else {
+        } else {
             velocityX = 0;
             velocityY = 0;
         }
@@ -249,7 +260,7 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
             velocityY -= 2 * PLAYER_ACCELERATION * Math.sin(playerA + Math.PI / 2);
             velocityX -= 2 * PLAYER_ACCELERATION * Math.cos(playerA + Math.PI / 2);
         }
-        
+
         //Calculate speed (with capping)
         var movementV = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
         if (movementV > PLAYER_WALKING_SPEED) {
@@ -268,7 +279,7 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
             var movementA = Math.atan(velocityY / velocityX);
         else
             var movementA = Math.atan(velocityY / velocityX) + Math.PI;
-            
+
         //Move
         tryMove(movementA, movementV * elapsedTime);
     }
@@ -294,8 +305,7 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
                 tryMove(Math.PI / 2, distY);
             else if (distY < 0)
                 tryMove(3 * Math.PI / 2, -distY);
-        }
-        else if (hitX.dist > hitY.dist) {
+        } else if (hitX.dist > hitY.dist) {
             if (distX > 0)
                 tryMove(0, distX);
             else if (distX < 0)
@@ -303,49 +313,46 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
         }
     }
 
-    function pushPlayerDownIfNecessary() {                    
+    function pushPlayerDownIfNecessary() {
         if (Math.floor(playerX) !== playerX) {
-            if (       world[Math.floor(playerY)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE
-                    || world[Math.floor(playerY - PLAYER_PUSHED_BUFFER)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE)
+            if (world[Math.floor(playerY)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE ||
+                world[Math.floor(playerY - PLAYER_PUSHED_BUFFER)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE)
                 playerY = Math.floor(playerY - PLAYER_PUSHED_BUFFER) - PLAYER_PUSHED_BUFFER;
-        }
-        else if (Math.floor(playerX) === playerX) {
-            if (       world[Math.floor(playerY)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE
-                    || world[Math.floor(playerY)][Math.floor(playerX) - 1] === WALL_TYPE_PIECE_ACTIVE
-                    || world[Math.floor(playerY - PLAYER_PUSHED_BUFFER)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE
-                    || world[Math.floor(playerY - PLAYER_PUSHED_BUFFER)][Math.floor(playerX) - 1] === WALL_TYPE_PIECE_ACTIVE)
+        } else if (Math.floor(playerX) === playerX) {
+            if (world[Math.floor(playerY)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE ||
+                world[Math.floor(playerY)][Math.floor(playerX) - 1] === WALL_TYPE_PIECE_ACTIVE ||
+                world[Math.floor(playerY - PLAYER_PUSHED_BUFFER)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE ||
+                world[Math.floor(playerY - PLAYER_PUSHED_BUFFER)][Math.floor(playerX) - 1] === WALL_TYPE_PIECE_ACTIVE)
                 playerY = Math.floor(playerY - PLAYER_PUSHED_BUFFER) - PLAYER_PUSHED_BUFFER;
         }
         handleSmashIfNecessary();
     }
 
-    function pushPlayerLeftIfNecessary() {                    
+    function pushPlayerLeftIfNecessary() {
         if (Math.floor(playerY) !== playerY) {
-            if (       world[Math.floor(playerY)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE
-                    || world[Math.floor(playerY)][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE)
+            if (world[Math.floor(playerY)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE ||
+                world[Math.floor(playerY)][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE)
                 playerX = Math.floor(playerX - PLAYER_PUSHED_BUFFER) - PLAYER_PUSHED_BUFFER;
-        }
-        else if (Math.floor(playerY) === playerY) {
-            if (       world[Math.floor(playerY)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE
-                    || world[Math.floor(playerY) - 1][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE
-                    || world[Math.floor(playerY)][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE
-                    || world[Math.floor(playerY) - 1][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE)
+        } else if (Math.floor(playerY) === playerY) {
+            if (world[Math.floor(playerY)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE ||
+                world[Math.floor(playerY) - 1][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE ||
+                world[Math.floor(playerY)][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE ||
+                world[Math.floor(playerY) - 1][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE)
                 playerX = Math.floor(playerX - PLAYER_PUSHED_BUFFER) - PLAYER_PUSHED_BUFFER;
         }
         handleSmashIfNecessary();
     }
 
-    function pushPlayerRightIfNecessary() {             
+    function pushPlayerRightIfNecessary() {
         if (Math.floor(playerY) !== playerY) {
-            if (       world[Math.floor(playerY)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE
-                    || world[Math.floor(playerY)][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE)
+            if (world[Math.floor(playerY)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE ||
+                world[Math.floor(playerY)][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE)
                 playerX = Math.ceil(playerX + PLAYER_PUSHED_BUFFER) + PLAYER_PUSHED_BUFFER;
-        }
-        else if (Math.floor(playerY) === playerY) {
-            if (       world[Math.floor(playerY)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE
-                    || world[Math.floor(playerY) - 1][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE
-                    || world[Math.floor(playerY)][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE
-                    || world[Math.floor(playerY) - 1][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE)
+        } else if (Math.floor(playerY) === playerY) {
+            if (world[Math.floor(playerY)][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE ||
+                world[Math.floor(playerY) - 1][Math.floor(playerX)] === WALL_TYPE_PIECE_ACTIVE ||
+                world[Math.floor(playerY)][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE ||
+                world[Math.floor(playerY) - 1][Math.floor(playerX - PLAYER_PUSHED_BUFFER)] === WALL_TYPE_PIECE_ACTIVE)
                 playerX = Math.ceil(playerX + PLAYER_PUSHED_BUFFER) + PLAYER_PUSHED_BUFFER;
         }
         handleSmashIfNecessary();
@@ -384,7 +391,9 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
                 pushOptions[pushOptions.length] = pushOption;
 
             //Sort
-            pushOptions.sort(function (a, b) { return a.getDistanceToPlayer() - b.getDistanceToPlayer(); } );
+            pushOptions.sort(function (a, b) {
+                return a.getDistanceToPlayer() - b.getDistanceToPlayer();
+            });
 
             //Move player
             if (pushOptions.length > 0) {
@@ -396,7 +405,7 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
         function PushOption(x, y) {
 
             //Set coordinates
-            this.x = x;                    
+            this.x = x;
             this.y = y;
 
             //Ensure bounds
@@ -410,7 +419,9 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
                 this.y = world.length - PLAYER_PUSHED_BUFFER;
 
             this.wallType = world[Math.floor(this.y)][Math.floor(this.x)];
-            this.getDistanceToPlayer = function () { return Math.sqrt(Math.pow(this.x - x, 2) + Math.pow(this.y - y, 2)); };
+            this.getDistanceToPlayer = function () {
+                return Math.sqrt(Math.pow(this.x - x, 2) + Math.pow(this.y - y, 2));
+            };
         }
     }
 
@@ -423,41 +434,38 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
         if (playerXFloor !== playerX) {
             if (playerYFloor !== playerY) {
                 isSmashed = world[playerYFloor][playerXFloor] !== WALL_TYPE_NONE;
+            } else if (playerYFloor === playerY) {
+                isSmashed = world[playerYFloor][playerXFloor] !== WALL_TYPE_NONE &&
+                    world[playerYFloor - 1][playerXFloor] !== WALL_TYPE_NONE;
             }
-            else if (playerYFloor === playerY) {
-                isSmashed = world[playerYFloor][playerXFloor] !== WALL_TYPE_NONE
-                    && world[playerYFloor - 1][playerXFloor] !== WALL_TYPE_NONE;
-            }
-        }
-        else if (playerXFloor === playerX) {
+        } else if (playerXFloor === playerX) {
             if (playerYFloor !== playerY) {
-                isSmashed = world[playerYFloor][playerXFloor] !== WALL_TYPE_NONE
-                    && world[playerYFloor][playerXFloor - 1] !== WALL_TYPE_NONE;
-            }
-            else if (playerYFloor === playerY) {
-                isSmashed = world[playerYFloor][playerXFloor] !== WALL_TYPE_NONE
-                    && world[playerYFloor][playerXFloor - 1] !== WALL_TYPE_NONE
-                    && world[playerYFloor - 1][playerXFloor] !== WALL_TYPE_NONE
-                    && world[playerYFloor - 1][playerXFloor - 1] !== WALL_TYPE_NONE;
+                isSmashed = world[playerYFloor][playerXFloor] !== WALL_TYPE_NONE &&
+                    world[playerYFloor][playerXFloor - 1] !== WALL_TYPE_NONE;
+            } else if (playerYFloor === playerY) {
+                isSmashed = world[playerYFloor][playerXFloor] !== WALL_TYPE_NONE &&
+                    world[playerYFloor][playerXFloor - 1] !== WALL_TYPE_NONE &&
+                    world[playerYFloor - 1][playerXFloor] !== WALL_TYPE_NONE &&
+                    world[playerYFloor - 1][playerXFloor - 1] !== WALL_TYPE_NONE;
             }
         }
 
         //Handle smash
-        if (isSmashed) {
-            playerLostTetris();
-        }
+        // if (isSmashed) {
+        //     playerLostTetris();
+        // }
     }
 
     function playerLostTetris() {
-        isGameInProgress = false;            
+        isGameInProgress = false;
     }
 
     function drawPlayerOverlay() {
 
         //Draw crosshairs
-        raycastingEngine.drawLine(VIEWPORT_WIDTH_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2 - VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_WIDTH_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2 + VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_CROSSHAIR_COLOR);
-        raycastingEngine.drawLine(VIEWPORT_WIDTH_PIXELS / 2 - VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2, VIEWPORT_WIDTH_PIXELS / 2 + VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2, VIEWPORT_CROSSHAIR_COLOR);
-        
+        // raycastingEngine.drawLine(VIEWPORT_WIDTH_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2 - VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_WIDTH_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2 + VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_CROSSHAIR_COLOR);
+        // raycastingEngine.drawLine(VIEWPORT_WIDTH_PIXELS / 2 - VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2, VIEWPORT_WIDTH_PIXELS / 2 + VIEWPORT_CROSSHAIR_SIZE_PIXELS / 2, VIEWPORT_HEIGHT_PIXELS / 2, VIEWPORT_CROSSHAIR_COLOR);
+
         //Draw next piece
         var nextPiece = tetrisEngine.getNextPiece();
         for (var row = 0; row < nextPiece.length; row++) {
@@ -472,37 +480,37 @@ function PlayerEngine(raycastingEngine, tetrisEngine) {
             }
         }
         canvasContext.fillStyle = "black";
-        canvasContext.font = "bold 32px Arial";
-        canvasContext.fillText("Next: ", VIEWPORT_WIDTH_PIXELS - 200, 40);
-        
+        canvasContext.font = "bold 20px Arial";
+        canvasContext.fillText("Next: ", VIEWPORT_WIDTH_PIXELS - 160, 20);
+
         //Draw lines and score
-        canvasContext.fillText("Lines: " + tetrisEngine.getNumberOfLines(), (VIEWPORT_WIDTH_PIXELS / 2) - 70, 40);
-        canvasContext.fillText("Score: " + tetrisEngine.getScore(), 50, 40);
+        canvasContext.fillText("Lines: " + tetrisEngine.getNumberOfLines(), (VIEWPORT_WIDTH_PIXELS / 2) - 67, 20);
+        canvasContext.fillText("Score: " + tetrisEngine.getScore(), 20, 20);
 
         //Draw game over screen
         if (!isGameInProgress) {
-            canvasContext.fillStyle = "white";
+            canvasContext.fillStyle = "black";
             canvasContext.font = "bold 64px Arial";
             canvasContext.fillText("Game over!", (VIEWPORT_WIDTH_PIXELS / 2) - 150, (VIEWPORT_HEIGHT_PIXELS / 2) + 8);
         }
     }
 
-    function isFacingRight () {
-        return (playerA > (3/2)*Math.PI)
-            || (playerA < (1/2)*Math.PI);
+    function isFacingRight() {
+        return (playerA > (3 / 2) * Math.PI) ||
+            (playerA < (1 / 2) * Math.PI);
     };
 
-    function isFacingUp () {
+    function isFacingUp() {
         return playerA > Math.PI;
     };
 
-    function normalizePlayerA () {
+    function normalizePlayerA() {
         if (playerA < 0)
             playerA += 2 * Math.PI;
         playerA %= 2 * Math.PI;
     }
 
-    function normalizePlayerVerticalA () {
+    function normalizePlayerVerticalA() {
         if (playerVerticalA < -Math.PI)
             playerVerticalA = -Math.PI;
         else if (playerVerticalA > Math.PI)

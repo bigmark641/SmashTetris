@@ -47,9 +47,9 @@ function GameEngine() {
                 attachMouseListeners();
 
                 //Get difficulty from user
-                getDifficultyFromUser()
-                    .then(function (result) {
-                        var difficulty = result;
+                // getDifficultyFromUser()
+                //     .then(function (result) {
+                        var difficulty = DIFFICULTY_MEDIUM;
                         var drawMinimap = difficulty <= DIFFICULTY_MEDIUM;
                         var drawPlayerOnMinimap = difficulty <= DIFFICULTY_EASY;
 
@@ -71,7 +71,7 @@ function GameEngine() {
                         else
                             setupControlsForKeyboardMode();
                         
-                    });
+                    // });
             });
     })();
 
@@ -214,54 +214,66 @@ function GameEngine() {
         document.onkeydown = function (keyboardEvent) {
             if (isGameInProgress) {
                 switch (keyboardEvent.keyCode) {
-                    case 87: //W
-                        playerEngine.tryStartMovingForward();
-                        break;
-                    case 83: //S
-                        playerEngine.tryStartMovingBackwards();
-                        break;
-                    case 65: //A
-                        if (isMouseMode)
-                            playerEngine.tryStartSidesteppingLeft();
-                        else
-                            playerEngine.tryStartTurningLeft();
-                        break;
-                    case 68: //D                                
-                        if (isMouseMode)
-                            playerEngine.tryStartSidesteppingRight();
-                        else
-                            playerEngine.tryStartTurningRight();
-                        break;
-                    case 81: //Q
-                        if (!isMouseMode)
-                            playerEngine.tryStartSidesteppingLeft();
-                        break;
-                    case 69: //E
-                        if (!isMouseMode)
-                            playerEngine.tryStartSidesteppingRight();
-                        break;
-                    case 37: //Right arrow
-                            if (!isMouseMode) {
-                                playerEngine.tryMovePieceRight();
-                            }
-                        break;
-                    case 38: //Up arrow
-                        if (!isMouseMode) {
-                            playerEngine.tryRotatePieceClockwise();
-                        }
-                        break;
-                    case 39: //Left arrow
-                        if (!isMouseMode) {
-                            playerEngine.tryMovePieceLeft();
-                        }
-                        break;
-                    case 40: //Down arrow
-                        if (!isMouseMode)
-                            playerEngine.tryStartDroppingPiece();
-                        break;
-                    case 32: //Space
-                        if (isMouseMode)
-                            playerEngine.tryStartDroppingPiece();
+                    // case 87: //W
+                    //     playerEngine.tryStartMovingForward();
+                    //     break;
+                    // case 83: //S
+                    //     playerEngine.tryStartMovingBackwards();
+                    //     break;
+                    // case 65: //A
+                    //     if (isMouseMode)
+                    //         playerEngine.tryStartSidesteppingLeft();
+                    //     else
+                    //         playerEngine.tryStartTurningLeft();
+                    //     break;
+                    // case 68: //D                                
+                    //     if (isMouseMode)
+                    //         playerEngine.tryStartSidesteppingRight();
+                    //     else
+                    //         playerEngine.tryStartTurningRight();
+                    //     break;
+                    // case 81: //Q
+                    //     if (!isMouseMode)
+                    //         playerEngine.tryStartSidesteppingLeft();
+                    //     break;
+                    // case 69: //E
+                    //     if (!isMouseMode)
+                    //         playerEngine.tryStartSidesteppingRight();
+                    //     break;
+                    // case 37: //Right arrow
+                    //         if (!isMouseMode) {
+                    //             playerEngine.tryMovePieceRight();
+                    //         }
+                    //     break;
+                    // case 38: //Up arrow
+                    //     if (!isMouseMode) {
+                    //         playerEngine.tryRotatePieceClockwise();
+                    //     }
+                    //     break;
+                    // case 39: //Left arrow
+                    //     if (!isMouseMode) {
+                    //         playerEngine.tryMovePieceLeft();
+                    //     }
+                    //     break;
+                    // case 40: //Down arrow
+                    //     if (!isMouseMode)
+                    //         playerEngine.startDroppingPiece();
+                    //     break;
+                    // case 32: //Space
+                    //     if (isMouseMode)
+                    //         playerEngine.startDroppingPiece();
+                case 37: //Right arrow
+                    playerEngine.movePieceRight();
+                    break;
+                case 38: //Up arrow
+                    playerEngine.rotatePieceClockwise();
+                    break;
+                case 39: //Left arrow
+                    playerEngine.movePieceLeft();
+                    break;
+                case 40: //Down arrow
+                    playerEngine.startDroppingPiece();
+                    break;
                 }
             }
         }
@@ -270,39 +282,38 @@ function GameEngine() {
         document.onkeyup = function (keyboardEvent) {                    
             if (isGameInProgress) {
                 switch (keyboardEvent.keyCode) {
-                    case 87: //W
-                        playerEngine.tryStopMovingForward();
-                        break;
-                    case 83: //S
-                        playerEngine.tryStopMovingBackwards();
-                        break;
-                    case 65: //A
-                        if (isMouseMode)
-                            playerEngine.tryStopSidesteppingLeft();
-                        else
-                            playerEngine.tryStopTurningLeft();
-                        break;
-                    case 68: //D
-                        if (isMouseMode)
-                            playerEngine.tryStopSidesteppingRight();
-                        else
-                            playerEngine.tryStopTurningRight();
-                        break;
-                    case 81: //Q
-                        if (!isMouseMode)
-                            playerEngine.tryStopSidesteppingLeft();
-                        break;
-                    case 69: //E
-                        if (!isMouseMode)
-                            playerEngine.tryStopSidesteppingRight();
-                        break;
+                    // case 87: //W
+                    //     playerEngine.tryStopMovingForward();
+                    //     break;
+                    // case 83: //S
+                    //     playerEngine.tryStopMovingBackwards();
+                    //     break;
+                    // case 65: //A
+                    //     if (isMouseMode)
+                    //         playerEngine.tryStopSidesteppingLeft();
+                    //     else
+                    //         playerEngine.tryStopTurningLeft();
+                    //     break;
+                    // case 68: //D
+                    //     if (isMouseMode)
+                    //         playerEngine.tryStopSidesteppingRight();
+                    //     else
+                    //         playerEngine.tryStopTurningRight();
+                    //     break;
+                    // case 81: //Q
+                    //     if (!isMouseMode)
+                    //         playerEngine.tryStopSidesteppingLeft();
+                    //     break;
+                    // case 69: //E
+                    //     if (!isMouseMode)
+                    //         playerEngine.tryStopSidesteppingRight();
+                    //     break;
                     case 40: //Down arrow
-                        if (!isMouseMode)
-                            playerEngine.tryStopDroppingPiece();
-                        break;
-                    case 32: //Space
-                        if (isMouseMode)
-                            playerEngine.tryStopDroppingPiece();
+                        playerEngine.stopDroppingPiece();
+                    //     break;
+                    // case 32: //Space
+                    //     if (isMouseMode)
+                    //         playerEngine.stopDroppingPiece();
                 }
             }                    
         }
@@ -332,7 +343,7 @@ function GameEngine() {
                             playerEngine.tryPullPiece();                            
                         break;
                     case 1: //Middle button
-                        playerEngine.tryStartDroppingPiece();
+                        playerEngine.startDroppingPiece();
                         break;
                     case 2: //Right click
                         if(e.ctrlKey)
@@ -346,7 +357,7 @@ function GameEngine() {
 
         //Mouse unclick
         document.onmouseup = function (e) {
-            playerEngine.tryStopDroppingPiece();
+            playerEngine.stopDroppingPiece();
         };
 
         //Disable browser context menu
