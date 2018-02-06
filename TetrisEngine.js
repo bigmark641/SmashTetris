@@ -38,18 +38,23 @@ function TetrisEngine() {
             [0, 0, 2],
         ],
         rotations: [
-            [[2, 2, 0],
-            [0, 0, 2],
-            [0, 0, 2]],
-            [[0, 0, 2],
-            [0, 0, 2],
-            [2, 2, 0]],
-            [[2, 0, 0],
-            [2, 0, 0],
-            [0, 2, 2]],
-            [[0, 2, 2],
-            [2, 0, 0],
-            [2, 0, 0]]
+            [
+                [0, 0, 2],
+                [0, 0, 2],
+                [2, 2, 0]],
+            [
+                [2, 2, 0],
+                [0, 0, 2],
+                [0, 0, 2]],
+            [
+                [0, 2, 2],
+                [2, 0, 0],
+                [2, 0, 0]],
+            [
+                [2, 0, 0],
+                [2, 0, 0],
+                [0, 2, 2]],
+
         ]
     }
 
@@ -384,10 +389,10 @@ function TetrisEngine() {
 
     window.TETRIS_PIECES = [
         window.REJECT_R,
-        window.REJECT_PLUS,
-        window.REJECT_Y,
-        // window.REJECT_HOOK,
-        // window.REJECT_CROOK,
+        //window.REJECT_PLUS,
+        //window.REJECT_Y,
+        //window.REJECT_HOOK,
+        //window.REJECT_CROOK,
         // window.REJECT_REVERSEWHEELBARROW,
         // window.REJECT_WHEELBARROW,
         // window.REJECT_DIAGONALDOG,
@@ -646,9 +651,9 @@ function TetrisEngine() {
             for (var cellIndex = 1; cellIndex <= world[rowIndex].length - 1; cellIndex++) {
 
                 let testRotation = [
-                    [world[rowIndex + 1][cellIndex - 1], world[rowIndex + 1][cellIndex], world[rowIndex + 1][cellIndex + 1]],
+                    [world[rowIndex - 1][cellIndex - 1], world[rowIndex - 1][cellIndex], world[rowIndex - 1][cellIndex + 1]],
                     [world[rowIndex][cellIndex - 1], world[rowIndex][cellIndex], world[rowIndex][cellIndex + 1]],
-                    [world[rowIndex - 1][cellIndex - 1], world[rowIndex - 1][cellIndex], world[rowIndex - 1][cellIndex + 1]]
+                    [world[rowIndex + 1][cellIndex - 1], world[rowIndex + 1][cellIndex], world[rowIndex + 1][cellIndex + 1]]
                 ];
 
                 for (let i = 0; i < currentTetrisBlock.rotations.length; i++) {
