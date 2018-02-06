@@ -154,8 +154,39 @@ function TetrisEngine() {
     window.REJECT_UPSTAIRS = {
         name: "UPSTAIRS",
         initial: [
-            [2, 0, 0],
+            [0, 0, 2],
             [2, 2, 0],
+            [2, 0, 0]
+        ],
+        rotations: [
+            [
+                [2, 0, 0],
+                [2, 2, 0],
+                [0, 0, 2]
+            ],
+            [
+                [0, 0, 2],
+                [0, 2, 0],
+                [2, 2, 0]
+            ],
+            [
+                [2, 0, 0],
+                [0, 2, 2],
+                [0, 0, 2]
+            ],
+            [
+                [0, 2, 2],
+                [0, 2, 0],
+                [2, 0, 0]
+            ]
+        ]
+    }
+
+    window.REJECT_DOWNSTAIRS = {
+        name: "DOWNSTAIRS",
+        initial: [
+            [2, 0, 0],
+            [0, 2, 2],
             [0, 0, 2]
         ],
         rotations: [
@@ -165,50 +196,19 @@ function TetrisEngine() {
                 [2, 0, 0]
             ],
             [
+                [2, 2, 0],
+                [0, 2, 0],
+                [0, 0, 2]
+            ],
+            [
+                [0, 0, 2],
+                [2, 2, 0],
+                [2, 0, 0]
+            ],
+            [
                 [2, 0, 0],
                 [0, 2, 0],
                 [0, 2, 2]
-            ],
-            [
-                [0, 0, 2],
-                [2, 2, 0],
-                [2, 0, 0]
-            ],
-            [
-                [2, 2, 0],
-                [0, 2, 0],
-                [0, 0, 2]
-            ]
-        ]
-    }
-
-    window.REJECT_DOWNSTAIRS = {
-        name: "DOWNSTAIRS",
-        initial: [
-            [0, 0, 2],
-            [0, 2, 2],
-            [2, 0, 0]
-        ],
-        rotations: [
-            [
-                [2, 0, 0],
-                [2, 2, 0],
-                [0, 0, 2]
-            ],
-            [
-                [0, 2, 2],
-                [0, 2, 0],
-                [2, 0, 0]
-            ],
-            [
-                [2, 0, 0],
-                [0, 2, 2],
-                [0, 0, 2]
-            ],
-            [
-                [0, 0, 2],
-                [0, 2, 0],
-                [2, 2, 0]
             ]
         ]
     }
@@ -216,9 +216,9 @@ function TetrisEngine() {
     window.REJECT_DIAGONALDOG = {
         name: "DIAGONALDOG",
         initial: [
-            [2, 0, 2],
+            [0, 0, 2],
             [0, 2, 0],
-            [2, 0, 0]
+            [2, 0, 2]
         ],
         rotations: [
             [
@@ -227,9 +227,9 @@ function TetrisEngine() {
                 [0, 0, 2]
             ],
             [
-                [0, 0, 2],
+                [2, 0, 2],
                 [0, 2, 0],
-                [2, 0, 2]
+                [2, 0, 0]
             ],
             [
                 [2, 0, 0],
@@ -237,10 +237,10 @@ function TetrisEngine() {
                 [2, 0, 2]
             ],
             [
-                [2, 0, 2],
+                [0, 0, 2],
                 [0, 2, 0],
-                [2, 0, 0]
-            ]
+                [2, 0, 2]
+            ]   
         ]
     }
 
@@ -392,15 +392,15 @@ function TetrisEngine() {
         //window.REJECT_PLUS,
         //window.REJECT_Y,
         //window.REJECT_HOOK,
-        window.REJECT_CROOK,
-        // window.REJECT_REVERSEWHEELBARROW,
-        // window.REJECT_WHEELBARROW,
-        // window.REJECT_DIAGONALDOG,
-        // window.REJECT_DOWNSTAIRS,
-        // window.REJECT_UPSTAIRS,
-        // window.REJECT_Q,
-        // window.REJECT_REVERSEQ,
-        // window.REJECT_KING
+        //window.REJECT_CROOK,
+        //window.REJECT_UPSTAIRS,
+        //window.REJECT_DOWNSTAIRS,
+        //window.REJECT_DIAGONALDOG,
+        window.REJECT_WHEELBARROW,
+        //window.REJECT_REVERSEWHEELBARROW,
+        //window.REJECT_Q,
+        //window.REJECT_REVERSEQ,
+        //window.REJECT_KING
     ];
 
 
