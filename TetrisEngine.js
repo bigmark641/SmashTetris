@@ -33,9 +33,9 @@ function TetrisEngine() {
     window.REJECT_R = {
         name: "R",
         initial: [
-            [0, 2, 2],
-            [2, 0, 0],
-            [2, 0, 0],
+            [2, 2, 0],
+            [0, 0, 2],
+            [0, 0, 2],
         ],
         rotations: [
             [[2, 2, 0],
@@ -89,7 +89,7 @@ function TetrisEngine() {
         initial: [
             [0, 2, 0],
             [2, 0, 2],
-            [2, 0, 0]
+            [0, 0, 2]
         ],
         rotations: [
             [
@@ -120,7 +120,7 @@ function TetrisEngine() {
         initial: [
             [0, 2, 0],
             [2, 0, 2],
-            [0, 0, 2]
+            [2, 0, 0]
         ],
         rotations: [
             [
@@ -149,9 +149,9 @@ function TetrisEngine() {
     window.REJECT_UPSTAIRS = {
         name: "UPSTAIRS",
         initial: [
-            [0, 0, 2],
-            [0, 2, 2],
-            [2, 0, 0]
+            [2, 0, 0],
+            [2, 2, 0],
+            [0, 0, 2]
         ],
         rotations: [
             [
@@ -180,9 +180,9 @@ function TetrisEngine() {
     window.REJECT_DOWNSTAIRS = {
         name: "DOWNSTAIRS",
         initial: [
-            [2, 0, 0],
-            [2, 2, 0],
-            [0, 0, 2]
+            [0, 0, 2],
+            [0, 2, 2],
+            [2, 0, 0]
         ],
         rotations: [
             [
@@ -213,7 +213,7 @@ function TetrisEngine() {
         initial: [
             [2, 0, 2],
             [0, 2, 0],
-            [0, 0, 2]
+            [2, 0, 0]
         ],
         rotations: [
             [
@@ -243,8 +243,8 @@ function TetrisEngine() {
         name: "WHEELBARROW",
         initial: [
             [0, 2, 0],
-            [2, 2, 0],
-            [0, 0, 2]
+            [0, 2, 2],
+            [2, 0, 0]
         ],
         rotations: [
             [
@@ -274,8 +274,8 @@ function TetrisEngine() {
         name: "REVERSEWHEELBARROW",
         initial: [
             [0, 2, 0],
-            [0, 2, 2],
-            [2, 0, 0]
+            [2, 2, 0],
+            [0, 0, 2]
         ],
         rotations: [
             [
@@ -304,62 +304,62 @@ function TetrisEngine() {
     window.REJECT_Q = {
         name: "Q",
         initial: [
-            [2, 2, 0],
+            [0, 2, 2],
             [2, 0, 2]
         ],
         rotations: [
             [
                 [2, 2, 0],
                 [2, 0, 2],
-                [0, 0, 0]]
+                [0, 0, 0]],
             [
-            [0, 2, 2],
-            [0, 0, 2],
-            [0, 2, 0]]
+                [0, 2, 2],
+                [0, 0, 2],
+                [0, 2, 0]],
             [
-            [2, 2, 0],
-            [2, 0, 2],
-            [0, 0, 0]]
+                [2, 2, 0],
+                [2, 0, 2],
+                [0, 0, 0]],
             [
-            [0, 2, 2],
-            [0, 0, 2],
-            [0, 2, 0]]
+                [0, 2, 2],
+                [0, 0, 2],
+                [0, 2, 0]]
         ]
     }
 
     window.REJECT_REVERSEQ = {
         name: "REVERSEQ",
         initial: [
-            [0, 2, 2],
+            [2, 2, 0],
             [2, 0, 2]
         ],
         rotations: [
             [
                 [0, 2, 2],
                 [2, 0, 2],
-                [0, 0, 0]]
+                [0, 0, 0]],
             [
-            [0, 2, 0],
-            [0, 0, 2],
-            [0, 2, 2]]
+                [0, 2, 0],
+                [0, 0, 2],
+                [0, 2, 2]],
             [
-            [0, 2, 2],
-            [2, 0, 2],
-            [0, 0, 0]]
+                [0, 2, 2],
+                [2, 0, 2],
+                [0, 0, 0]],
             [
-            [0, 2, 0],
-            [0, 0, 2],
-            [0, 2, 2]]
+                [0, 2, 0],
+                [0, 0, 2],
+                [0, 2, 2]]
         ]
     }
 
     window.REJECT_KING = {
         name: "KING",
         initial: [
-            [2, 0, 0, 0],
-            [0, 2, 0, 0],
+            [0, 0, 0, 2],
             [0, 0, 2, 0],
-            [0, 0, 0, 2]],
+            [0, 2, 0, 0],
+            [2, 0, 0, 0]],
         rotations: [
             [[2, 0, 0, 0],
             [0, 2, 0, 0],
@@ -386,16 +386,16 @@ function TetrisEngine() {
         window.REJECT_R,
         window.REJECT_PLUS,
         window.REJECT_Y,
-        window.REJECT_HOOK,
-        window.REJECT_CROOK,
-        window.REJECT_REVERSEWHEELBARROW,
-        window.REJECT_WHEELBARROW,
-        window.REJECT_DIAGONALDOG,
-        window.REJECT_DOWNSTAIRS,
-        window.REJECT_UPSTAIRS,
-        window.REJECT_Q,
-        window.REJECT_REVERSEQ,
-        window.REJECT_KING
+        // window.REJECT_HOOK,
+        // window.REJECT_CROOK,
+        // window.REJECT_REVERSEWHEELBARROW,
+        // window.REJECT_WHEELBARROW,
+        // window.REJECT_DIAGONALDOG,
+        // window.REJECT_DOWNSTAIRS,
+        // window.REJECT_UPSTAIRS,
+        // window.REJECT_Q,
+        // window.REJECT_REVERSEQ,
+        // window.REJECT_KING
     ];
 
 
