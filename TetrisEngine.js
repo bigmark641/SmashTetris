@@ -61,9 +61,9 @@ function TetrisEngine() {
     window.REJECT_Y = {
         name: "Y",
         initial: [
+            [2, 0, 2],
             [0, 2, 0],
-            [0, 2, 0],
-            [2, 0, 2]
+            [0, 2, 0]
         ],
         rotations: [
             [
@@ -72,9 +72,9 @@ function TetrisEngine() {
                 [2, 0, 2]
             ],
             [
-                [2, 0, 0],
-                [0, 2, 2],
-                [2, 0, 0]
+                [0, 0, 2],
+                [2, 2, 0],
+                [0, 0, 2]
             ],
             [
                 [2, 0, 2],
@@ -82,9 +82,9 @@ function TetrisEngine() {
                 [0, 2, 0]
             ],
             [
-                [0, 0, 2],
-                [2, 2, 0],
-                [0, 0, 2]
+                [2, 0, 0],
+                [0, 2, 2],
+                [2, 0, 0]
             ]
         ]
     }
@@ -388,9 +388,9 @@ function TetrisEngine() {
 
 
     window.TETRIS_PIECES = [
-        window.REJECT_R,
+        //window.REJECT_R,
         //window.REJECT_PLUS,
-        //window.REJECT_Y,
+        window.REJECT_Y,
         //window.REJECT_HOOK,
         //window.REJECT_CROOK,
         // window.REJECT_REVERSEWHEELBARROW,
