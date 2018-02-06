@@ -635,11 +635,11 @@ function TetrisEngine() {
         var center = [];
 
         if (currentTetrisBlock.name == "Q" || currentTetrisBlock.name == "REVERSEQ") {
-
+            return;
         }
 
         if (currentTetrisBlock.name == "KING") {
-            
+            return;
         }
 
         for (var rowIndex = 1; rowIndex < world.length - 1; rowIndex++) {
